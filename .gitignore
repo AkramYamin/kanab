@@ -3,3 +3,6 @@ node_modules/
 *.log
 .settings.json
 .claude/
+# Voice packs you make yourself (family voices) stay on this computer.
+public/voices/*
+!public/voices/announcer/

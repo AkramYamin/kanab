@@ -64,12 +64,19 @@ for (const map of MAPS) {
   console.log(`  • bots can reach ${reach}/${targets.length} spots  (${map.pads.length} pads, ${map.teles.length / 2} teleporter pairs, ${nav.special.size} shortcuts)`);
 
   if (quick) continue;
-  const ev = { caps: 0, kills: 0, pads: 0, teles: 0 };
+  const ev = { caps: 0, kills: 0, pads: 0, teles: 0, freezes: 0, bonks: 0, holes: 0 };
+  const byWeapon = {};
   const sim = new Game(map, { mode: 'ctf', scoreLimit: 99, timeLimit: 999, aimAssist: true }, {
     flag: (k) => k === 'captured' && ev.caps++,
-    kill: () => ev.kills++,
+    kill: (k, v, w) => {
+      ev.kills++;
+      byWeapon[w] = (byWeapon[w] || 0) + 1;
+    },
     pad: () => ev.pads++,
     tele: () => ev.teles++,
+    freeze: () => ev.freezes++,
+    bonk: () => ev.bonks++,
+    hole: () => ev.holes++,
   });
   for (let i = 0; i < 8; i++) {
     sim.addPlayer({ pid: 1000 + i, name: 'b' + i, color: '#fff', team: i % 2 ? 'blue' : 'red', bot: makeBot('easy', i < 2 ? 'defend' : 'attack') });
@@ -89,6 +96,8 @@ for (const map of MAPS) {
   console.log(
     `  • 3 min bot CTF: ${ev.caps} captures, ${ev.kills} knockouts, ${ev.pads} pad jumps, ${ev.teles} teleports — ${Math.round(performance.now() - t0)} ms`,
   );
+  const kinds = Object.entries(byWeapon).sort((a, b) => b[1] - a[1]).map(([w, n]) => `${w} ${n}`).join(', ');
+  console.log(`  • ${ev.freezes} freezes, ${ev.bonks} hammer bonks, ${ev.holes} black holes; knockouts by: ${kinds}`);
   if (ev.caps === 0) warn('no flag captures in 3 minutes');
   if (camping.length) console.log(`  • spots where a bot spent 45+ s: ${camping.join(' ')}`);
 }

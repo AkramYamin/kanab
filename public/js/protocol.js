@@ -5,8 +5,8 @@
 import { WEAPONS } from './weapons.js';
 
 export const WKEYS = Object.keys(WEAPONS);
-export const PKINDS = ['bullet', 'rocket', 'grenade', 'flame', 'bounce'];
-export const PICKUP_KINDS = ['weapon', 'health', 'grenades', 'power'];
+export const PKINDS = ['bullet', 'rocket', 'grenade', 'flame', 'bounce', 'ice', 'bee', 'hole'];
+export const PICKUP_KINDS = ['weapon', 'health', 'grenades', 'power', 'hole'];
 export const FLAG_STATES = ['home', 'carried', 'dropped'];
 export const PHASES = ['countdown', 'playing', 'ended'];
 export const TEAMS = ['red', 'blue', 'ffa'];
@@ -15,7 +15,8 @@ const r1 = (v) => Math.round(v * 10) / 10;
 const r = Math.round;
 
 // Player: [pid, x, y, vx, vy, aim, flags, hp, weapon, ammo, gren, fuel,
-//          carrying, respawnT, prot, airT, jumpAge, jumpCd, dropT, kills]
+//          carrying, respawnT, prot, airT, jumpAge, jumpCd, dropT, kills,
+//          chill*100, frozenT*10]
 export function encodePlayer(p) {
   let f = 0;
   if (p.alive) f |= 1;
@@ -31,6 +32,7 @@ export function encodePlayer(p) {
     WKEYS.indexOf(p.weapon), p.ammo === Infinity ? -1 : p.ammo, p.gren, r(p.fuel * 100),
     p.carrying === 'red' ? 1 : p.carrying === 'blue' ? 2 : 0, r1(Math.max(0, p.respawnT)), r1(p.prot),
     r(Math.min(p.airT, 9) * 1000), r(Math.min(p.jumpAge, 9) * 1000), r(p.jumpCd * 1000), r(p.dropT * 1000), p.kills,
+    r(p.chill * 100), Math.ceil(p.frozenT * 10),
   ];
 }
 
@@ -63,13 +65,18 @@ export function decodePlayer(a, p) {
   p.jumpCd = a[17] / 1000;
   p.dropT = a[18] / 1000;
   p.kills = a[19];
+  p.chill = (a[20] || 0) / 100;
+  p.frozenT = (a[21] || 0) / 10;
   p.facing = Math.cos(p.aim) >= 0 ? 1 : -1;
   return p;
 }
 
-// Projectile: [id, kind, weapon, x, y, vx, vy, age*100, team]
+// Projectile: [id, kind, weapon, x, y, vx, vy, age*100, team] and, for black
+// holes, [..., owner, active] so phones can predict being pulled.
 export function encodeProjectile(b) {
-  return [b.id, PKINDS.indexOf(b.kind), WKEYS.indexOf(b.wkey), r1(b.x), r1(b.y), r(b.vx), r(b.vy), r(b.age * 100), TEAMS.indexOf(b.team)];
+  const a = [b.id, PKINDS.indexOf(b.kind), WKEYS.indexOf(b.wkey), r1(b.x), r1(b.y), r(b.vx), r(b.vy), r(b.age * 100), TEAMS.indexOf(b.team)];
+  if (b.kind === 'hole') a.push(b.owner, b.active ? 1 : 0);
+  return a;
 }
 
 // Pickup: [kind, x, y, weapon, respawnLeft*10, respawnTotal, tempLeft*10 | -1]

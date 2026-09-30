@@ -97,6 +97,7 @@ const MAP_DEFS = [
       [110, 600, 'weapon', 'rail'], [900, 1160, 'weapon', 'shotgun'], [1200, 1000, 'weapon', 'minigun'],
       [300, 1680, 'weapon', 'flamer'], [1140, 1360, 'weapon', 'bouncer'], [820, 1800, 'health'],
       [200, 860, 'grenades'], [1400, 520, 'grenades'],
+      [775, 1440, 'weapon', 'freeze'], [820, 760, 'weapon', 'bees'], [1400, 1180, 'weapon', 'hammer'], [670, 1620, 'hole'],
     ],
     mirrorProps: [
       ['banner', 60, 1060], ['banner', 380, 1060], ['lamp', 560, 1060], ['crate', 955, 1700], ['cactus', 1360, 1800],
@@ -129,6 +130,7 @@ const MAP_DEFS = [
       [45, 520, 'weapon', 'rail'], [740, 1340, 'weapon', 'shotgun'], [570, 1000, 'weapon', 'minigun'],
       [900, 1900, 'weapon', 'flamer'], [1375, 1200, 'weapon', 'bouncer'], [940, 1720, 'health'],
       [240, 880, 'grenades'], [820, 780, 'health'],
+      [740, 1120, 'weapon', 'freeze'], [1365, 900, 'weapon', 'bees'], [520, 640, 'weapon', 'hammer'], [600, 1900, 'hole'],
     ],
     mirrorProps: [['banner', 30, 1080], ['banner', 410, 1080], ['lamp', 1300, 1720], ['lamp', 1540, 1720], ['antenna', 1110, 820]],
     flag: [220, 1080],
@@ -155,6 +157,7 @@ const MAP_DEFS = [
       [80, 700, 'weapon', 'rail'], [800, 1360, 'weapon', 'shotgun'], [1210, 1200, 'weapon', 'minigun'],
       [300, 1700, 'weapon', 'flamer'], [1060, 1540, 'weapon', 'bouncer'], [340, 960, 'grenades'],
       [660, 1800, 'health'], [1050, 820, 'grenades'],
+      [1380, 1000, 'weapon', 'freeze'], [850, 820, 'weapon', 'bees'], [410, 720, 'weapon', 'hammer'], [1250, 1800, 'hole'],
     ],
     mirrorProps: [['banner', 180, 1200], ['banner', 500, 1200], ['pine', 620, 1800], ['pine', 1320, 1800], ['torch', 30, 1700]],
     flag: [300, 1200],
@@ -183,6 +186,7 @@ const MAP_DEFS = [
       [100, 620, 'weapon', 'rail'], [810, 1300, 'weapon', 'shotgun'], [1000, 1050, 'weapon', 'minigun'],
       [520, 1800, 'weapon', 'flamer'], [1130, 700, 'weapon', 'bouncer'], [270, 880, 'grenades'],
       [1380, 1480, 'health'], [1100, 1800, 'health'],
+      [1340, 900, 'weapon', 'freeze'], [760, 800, 'weapon', 'bees'], [440, 420, 'weapon', 'hammer'], [960, 1800, 'hole'],
     ],
     mirrorProps: [['banner', 20, 1100], ['banner', 580, 1100], ['torch', 1230, 1640], ['torch', 1700, 1060], ['palm', 950, 1800]],
     flag: [440, 1100],
@@ -190,7 +194,7 @@ const MAP_DEFS = [
   },
 ];
 
-const RESPAWN = { weapon: 10, health: 12, grenades: 12, power: 40 };
+const RESPAWN = { weapon: 10, health: 12, grenades: 12, power: 40, hole: 25 };
 
 function build(def) {
   const { W, H } = def;

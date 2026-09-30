@@ -3,7 +3,7 @@
 *kanab* (كنبة) is Arabic for couch: this game was made for family game nights on the sofa.
 
 
-A 2D team shooter for the big screen, inspired by the classic **Soldat**. Jetpacks, Capture the Flag, rockets and railguns. Scan the QR code and your **phone becomes a twin-stick gamepad**. There's nothing to install on the phones.
+A 2D team shooter for the big screen, inspired by the classic **Soldat**. Jetpacks, Capture the Flag, rockets, freeze rays and bee swarms. Scan the QR code and your **phone becomes a twin-stick gamepad**. There's nothing to install on the phones.
 
 Two ways to watch, and you can mix them in the same match:
 
@@ -44,11 +44,13 @@ The game speaks **English** and **Arabic (العربية)**: the TV, the phones 
 
 - Change it with the **Language** setting in the lobby (or press `L` on the laptop). Every screen follows it, and Arabic switches the menus to right-to-left.
 - A phone can pick its own language on the join screen, so a guest can use English while the TV is in Arabic.
-- The announcer uses the computer's built-in voices. On a Mac the Arabic voice is **Majed**. If Arabic is chosen and no Arabic voice is installed, the TV shows how to add one (System Settings → Accessibility → Spoken Content → System voice → Manage Voices; on Windows: Settings → Time & language → Speech → Add voices).
+- The announcer is a recorded **Arena announcer** voice in both languages, made with AI (see [Announcer voices](#announcer-voices-ai)). The lobby's **Announcer** setting switches between voice packs and *Computer voice*, which uses the computer's built-in speech (on a Mac the Arabic voice is **Majed**; to add one: System Settings → Accessibility → Spoken Content → System voice → Manage Voices; on Windows: Settings → Time & language → Speech → Add voices).
 
 | العربية على التلفاز | على الهاتف |
 | --- | --- |
 | ![Arabic lobby](docs/screenshots/ar/tv-lobby.jpg) | ![Arabic phone](docs/screenshots/ar/phone-lobby.jpg) |
+
+![Freeze Ray and Big Hammer in Arabic: تجمّد! and طاخ!](docs/screenshots/ar/tv-weapons.jpg)
 
 ## Controls
 
@@ -73,10 +75,16 @@ Each stick appears wherever your thumb lands and follows it if you slide too far
 - **4 big maps**: Canyon Run, Neon District, Glacier Keep, Jungle Temple. Each has tunnels, towers and several routes between the bases, plus:
   - **Jump pads** (green arrows) that fling you up to the high routes.
   - **Teleporters** (glowing portals, in pairs of the same color). Walk in and you come out of its twin. Step out and back in to return.
-- **7 weapons** plus grenades: Blaster, Shotgun, Minigun, Railgun, Rockets, Flamer, Bouncer. Pickups for health, grenades and a double damage star.
+- **10 weapons** plus grenades: Blaster, Shotgun, Minigun, Railgun, Rockets, Flamer, Bouncer, Freeze Ray, Bee Swarm and Big Hammer. Pickups for health, grenades, black holes and a double damage star.
   - *Rockets* speed up as they fly and explode on the first wall or player they hit. The blast hurts enemies nearby and throws everyone around. Shoot at your feet to rocket-jump; your own rockets never hurt you.
+  - *Freeze Ray* sprays ice. Keep it on someone for about a second and they freeze in an ice block for 1.6 s: they can't move, jump or shoot, and they slide around. Right after thawing nobody can freeze them again for a moment.
+  - *Bee Swarm* shoots 3 bees that fly to the nearest enemy they can see, so aiming hardly matters. Great for the youngest players.
+  - *Big Hammer* is a toy hammer: every swing leaps you forward and launches whoever it hits across the map (BONK!). It shatters frozen enemies for extra damage.
+  - *Black holes* (purple swirl pickup) replace your next 2 grenades. Thrown like a grenade, it floats up and pulls enemies in for 2 seconds, then pops. Teammates are safe.
 - **Bots** (easy / normal / hard) fill the teams when you're short on players.
-- An announcer voice, live-generated sound effects in stereo, music, and phone vibration (Android) when you get hit.
+- An announcer voice, live-generated sound effects in stereo, music, and phone vibration (Android) when you get hit or frozen.
+
+![Freeze Ray, Big Hammer, Bee Swarm and a black hole](docs/screenshots/tv-weapons.jpg)
 
 ## How it works
 
@@ -89,7 +97,20 @@ Each stick appears wherever your thumb lands and follows it if you slide too far
 - The match runs on the laptop's Node server, so it keeps going even if the TV tab is closed. The same game code (`public/js/game.js`) runs in Node and in the browser.
 - **No-lag phones:** a phone that shows the game moves its own soldier with the same physics locally, so it reacts instantly. The server's snapshots correct it smoothly (usually by just a few pixels). Everyone else is smoothed between snapshots.
 - There's no build step: plain ES modules and Canvas 2D. Distant scenery is painted once, and the level is drawn as crisp vector shapes, so it stays sharp at any camera zoom.
-- All sound is made on the fly with the Web Audio API. There are no audio files.
+- Sound effects are made on the fly with the Web Audio API, so there are no sound files. Only the announcer is recorded (below).
+
+## Announcer voices (AI)
+
+The announcer lines are short MP3 clips in `public/voices/announcer/` (Arabic and English), made on this laptop with two open AI models: [Chatterbox](https://github.com/resemble-ai/chatterbox) (Resemble AI, MIT) speaks each line in the voice of a short recording, and [Whisper](https://huggingface.co/openai/whisper-large-v3-turbo) (OpenAI, MIT) listens to 3 takes of every line and keeps the one it understands best. The music ducks while the announcer talks.
+
+You can make your own pack from a 10-second recording, for example a parent's voice:
+
+```bash
+npm run voices:setup                     # once: private Python + packages in tools/voice/
+npm run voices -- --pack baba --name "Baba" --ref ~/Desktop/baba.m4a --lang ar
+```
+
+Then pick it with the lobby's **Announcer** setting. Your own packs stay out of git. Details are in [tools/voice/README.md](tools/voice/README.md). None of this is needed to play.
 
 Dependencies (all long-lived, widely used projects):
 
@@ -99,7 +120,7 @@ Dependencies (all long-lived, widely used projects):
 | [`qrcode`](https://github.com/soldair/node-qrcode) | QR code for the join link (since 2010) |
 | [`nipplejs`](https://github.com/yoannmoinet/nipplejs) 0.10.x | Touch joysticks (since 2015; pinned to the stable 0.10 line) |
 
-Everything installs into the project's own `node_modules` and nothing is installed globally. `.nvmrc` pins the Node version and `.npmrc` enforces exact versions.
+Everything installs into the project's own `node_modules` and nothing is installed globally. The optional voice maker keeps its Python packages inside `tools/voice/` too. `.nvmrc` pins the Node version and `.npmrc` enforces exact versions.
 
 ## Project layout
 
@@ -120,7 +141,11 @@ public/js/
   audio.js           synthesized sound effects, music, announcer
   i18n.js            English and Arabic text
   tv.js              TV page
+public/voices/       announcer voice packs (MP3 clips + manifest.json)
+tools/voice/         AI voice maker (Chatterbox + Whisper, private Python env)
 scripts/check-maps.mjs    validates every map and runs bot-only matches
+scripts/test-weapons.mjs  checks freeze, bees, hammer and black holes do what they should
+scripts/voices.mjs        makes announcer clips from the lines in i18n.js
 scripts/screenshots.mjs   regenerates the README screenshots with headless Chrome
 ```
 
@@ -130,6 +155,7 @@ scripts/screenshots.mjs   regenerates the README screenshots with headless Chrom
 - iPhone: for a true fullscreen controller, tap Share → *Add to Home Screen* and open it from there.
 - Regenerate screenshots: `npm start` in one terminal, `npm run screenshots` in another (uses your installed Google Chrome).
 - Made a map? `npm run check-maps` checks that everything is reachable and that bots can capture flags on it.
+- Changed a weapon? `npm run test-weapons` runs quick checks of the special weapons.
 
 ## License
 

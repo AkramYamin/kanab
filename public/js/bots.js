@@ -6,7 +6,7 @@
 // path-find through the air too, but air cells cost more so they prefer to
 // walk along floors and platforms.
 
-import { WEAPONS } from './weapons.js';
+import { WEAPONS, HOLE } from './weapons.js';
 import { angleDiff, rand, clamp, pick } from './util.js';
 import { PHYS } from './game.js';
 
@@ -241,6 +241,7 @@ function nearestPickup(g, p, kinds, maxD) {
     if (k.t > 0 || !kinds.includes(k.kind)) continue;
     if (k.kind === 'health' && p.hp >= 100) continue;
     if (k.kind === 'grenades' && p.gren >= 3) continue;
+    if (k.kind === 'hole' && p.holes >= HOLE.max) continue;
     const d = Math.hypot(k.x - p.x, k.y - p.y);
     if (d < bestD) {
       bestD = d;
@@ -306,8 +307,10 @@ function think(g, p, b, sk) {
   }
   if (!goal && p.weapon === 'blaster') goal = nearestPickup(g, p, ['weapon'], 650);
   if (!goal) goal = closest ? { x: closest.x, y: closest.y } : { x: g.map.W / 2, y: g.map.H / 2 };
+  // With the hammer you have to get close.
+  if (!p.carrying && p.weapon === 'hammer' && seen && seenD < 520) goal = { x: seen.x, y: seen.y };
   if (!p.carrying) {
-    const near = nearestPickup(g, p, p.weapon === 'blaster' ? ['weapon', 'health', 'grenades', 'power'] : ['health', 'power', 'grenades'], 200);
+    const near = nearestPickup(g, p, p.weapon === 'blaster' ? ['weapon', 'health', 'grenades', 'power', 'hole'] : ['health', 'power', 'grenades', 'hole'], 200);
     if (near) goal = near;
   }
   const moved = !b.goal || Math.hypot(goal.x - b.goal.x, goal.y - b.goal.y) > 90;
@@ -394,7 +397,8 @@ function combat(g, p, b, sk, inp, dt) {
     let tx = t.x;
     let ty = t.y - PHYS.H / 2;
     const dist = Math.hypot(tx - sx, ty - sy);
-    const speed = w.kind === 'rail' ? Infinity : w.speed || 1000;
+    // Rails hit instantly, bees steer themselves, hammers are point blank.
+    const speed = w.kind === 'rail' || w.kind === 'bee' || w.kind === 'melee' ? Infinity : w.speed || 1000;
     const lead = Math.min(dist / speed, 0.6) * sk.lead;
     tx += t.vx * lead;
     ty += t.vy * lead * 0.5;
@@ -409,12 +413,13 @@ function combat(g, p, b, sk, inp, dt) {
     b.aim = cur + clamp(d, -sk.turn * dt, sk.turn * dt);
     inp.aim = b.aim;
     b.reactT -= dt;
-    const range = w.kind === 'flame' ? 380 : w.pellets > 1 ? 650 : 1500;
-    inp.fire = b.reactT <= 0 && Math.abs(d) < sk.fireCone && dist < range;
+    const range = { flame: 380, ice: 560, melee: 130, bee: 1150 }[w.kind] || (w.pellets > 1 ? 650 : 1500);
+    const cone = w.kind === 'bee' || w.kind === 'melee' ? sk.fireCone * 2.2 : sk.fireCone;
+    inp.fire = b.reactT <= 0 && Math.abs(d) < cone && dist < range;
     b.grenT -= dt;
     if (b.grenT <= 0) {
       b.grenT = rand(1.5, 3);
-      if (dist < 520 && p.gren > 0 && Math.random() < sk.gren * 2) inp.gren = (inp.gren + 1) & 255;
+      if (dist < 520 && (p.gren > 0 || p.holes > 0) && Math.random() < sk.gren * 2) inp.gren = (inp.gren + 1) & 255;
     }
   } else {
     inp.fire = false;

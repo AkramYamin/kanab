@@ -60,6 +60,7 @@ function onMessage(m) {
     case 'lobby': {
       lobby = m;
       const changed = setLang(m.lang);
+      audio.setPack(m.voice, getLang());
       if (changed || !langReady) applyLanguage(changed);
       renderLobby();
       setScreen(m.screen);
@@ -98,7 +99,7 @@ function applyLanguage(changed) {
     startDemo();
   }
   // Voices load a moment after the page; warn if there is none for Arabic.
-  if (getLang() === 'ar') setTimeout(() => !audio.hasVoice && toast(t('noVoice'), '#ffcc4d'), 1500);
+  if (getLang() === 'ar') setTimeout(() => !audio.hasVoice && !audio.hasClips && toast(t('noVoice'), '#ffcc4d'), 1500);
 }
 
 // ----------------------------------------------------------- lobby & demo
@@ -224,9 +225,9 @@ const ui = {
   go: () => {
     banner(t('go'), '', '#ffcc4d', 900, 'count');
     audio.tick(true);
-    audio.say(t('say.fight'), true);
+    audio.announce('fight', {}, t('say.fight'), true);
   },
-  say: (text, urgent) => audio.say(text, urgent),
+  say: (text, urgent, key, params) => audio.announce(key, params, text, urgent),
   toast: (text, color) => toast(text, color),
   banner: (title, sub, color, ms, kind) => banner(title, escapeHtml(sub), color, ms, kind),
   feed: (k, v, w) => v && addFeed(k, v, w),
@@ -453,8 +454,15 @@ function loop(now) {
     sendKeyboardInput(now);
     let jet = 0;
     for (const p of world.players.values()) if (p.alive && p.jetting) jet++;
-    const flames = world.projectiles.reduce((n, b) => n + (b.kind === 'flame' && b.age < 0.1 ? 1 : 0), 0);
-    audio.setLoops(jet, Math.min(3, flames / 2));
+    let flames = 0;
+    let bees = 0;
+    let holes = 0;
+    for (const b of world.projectiles) {
+      if (b.kind === 'flame' && b.age < 0.1) flames++;
+      else if (b.kind === 'bee') bees++;
+      else if (b.kind === 'hole' && b.active) holes++;
+    }
+    audio.setLoops(jet, Math.min(3, flames / 2), bees, holes);
   } else if (demo) {
     acc += dt;
     let steps = 0;
@@ -479,6 +487,6 @@ requestAnimationFrame(loop);
 // Handy for debugging from the console (and the screenshot script).
 window.cc = {
   get world() { return world || demo; },
-  renderer, cam, send,
+  renderer, cam, send, t, audio,
   get lobby() { return lobby; },
 };

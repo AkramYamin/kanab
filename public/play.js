@@ -385,6 +385,7 @@ const predInput = { mx: 0, my: 0, aim: 0, aiming: false, fire: false, gren: 0 };
 
 function predFrom(p) {
   return {
+    pid: p.pid, team: p.team, chill: p.chill, frozenT: p.frozenT, iceProt: 0,
     x: p.sx, y: p.sy, vx: p.vx, vy: p.vy, w: PHYS.W, h: PHYS.H,
     onGround: p.onGround, onPlat: p.onPlat, airT: p.airT, jumpCd: p.jumpCd, jumpAge: p.jumpAge, dropT: p.dropT,
     fuel: p.fuel, fling: p.fling, teleLock: p.teleLock, jetting: p.jetting,
@@ -398,6 +399,7 @@ function onSnap(s) {
   if (!world) return;
   const events = world.apply(s, performance.now());
   const me = world.players.get(pid);
+  predGame.projectiles = world.projectiles; // black holes pull us here too
   if (me && me.alive) {
     const srv = predFrom(me);
     const lag = clamp(Math.round(rtt / (STEP * 1000)) + 1, 0, 12);
@@ -449,6 +451,7 @@ function drawPhoneFrame(dt, now) {
   predInput.aiming = input.aiming;
   if (input.aiming) predInput.aim = Math.atan2(input.ay, input.ax);
   predInput.fire = input.fire;
+  predGame.projectiles = world.projectiles;
   predAcc += dt;
   while (predAcc >= STEP) {
     if (pred) predGame.movePlayer(pred, STEP, world.phase === 'countdown');
@@ -470,10 +473,17 @@ function drawPhoneFrame(dt, now) {
   updateFollowCamera(cam, { x: focus.x, y: focus.y, aim: focus.aim, aiming: input.aiming }, world.map, renderer.cw, renderer.ch, dt);
   audio.listener = { x: cam.x, y: cam.y, halfW: renderer.cw / 2 / cam.zoom, halfH: renderer.ch / 2 / cam.zoom };
   let jet = 0;
+  const near = (x) => Math.abs(x - cam.x) < renderer.cw / cam.zoom;
   for (const p of world.players.values()) {
-    if (p.alive && p.jetting && Math.abs(p.x - cam.x) < renderer.cw / cam.zoom) jet += p.pid === pid ? 1 : 0.4;
+    if (p.alive && p.jetting && near(p.x)) jet += p.pid === pid ? 1 : 0.4;
   }
-  audio.setLoops(jet, 0);
+  let bees = 0;
+  let holes = 0;
+  for (const b of world.projectiles) {
+    if (b.kind === 'bee' && near(b.x)) bees++;
+    else if (b.kind === 'hole' && b.active && near(b.x)) holes++;
+  }
+  audio.setLoops(jet, 0, bees, holes);
   renderer.frame(world, cam, dt, now / 1000, (ctx, R) => R.drawArrows(ctx, objectives(me)));
   drawMinimap(me);
 }
@@ -704,9 +714,13 @@ function applyHud(m, force = false) {
   }
   if (m.w !== p.w) $('#wName').textContent = t(`w.${m.w}`);
   if (m.a !== p.a) $('#wAmmo').textContent = m.a < 0 ? '∞' : m.a;
-  if (m.g !== p.g) {
-    $('#grenNum').textContent = m.g;
-    grenBtn.classList.toggle('empty', m.g === 0);
+  if (m.g !== p.g || m.h !== p.h) {
+    // Black holes (from the swirl pickup) are thrown before normal grenades.
+    const hole = m.h > 0;
+    $('#grenNum').textContent = hole ? m.h : m.g;
+    grenBtn.querySelector('span').textContent = hole ? '◎' : '✹';
+    grenBtn.classList.toggle('hole', hole);
+    grenBtn.classList.toggle('empty', !hole && m.g === 0);
   }
   if (m.f !== p.f) $('#fuelFill').style.width = `${m.f * 10}%`;
   $('#dead').classList.toggle('hidden', m.al === 1);
@@ -722,7 +736,7 @@ function applyHud(m, force = false) {
   }
   if (padBannerUntil > performance.now()) return;
   const bannerEl = $('#padBanner');
-  const msg = m.ph === 'countdown' ? t('ph.readyDots') : m.fl ? t('ph.flagHome') : m.pw ? t('ph.power') : '';
+  const msg = m.ph === 'countdown' ? t('ph.readyDots') : m.fz ? t('ph.frozen') : m.fl ? t('ph.flagHome') : m.pw ? t('ph.power') : '';
   bannerEl.textContent = msg;
   bannerEl.classList.toggle('hidden', !msg);
 }

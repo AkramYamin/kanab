@@ -40,6 +40,8 @@ const en = {
   'set.time': 'Time',
   'set.assist': 'Aim help',
   'set.lang': 'Language',
+  'set.voice': 'Announcer',
+  'voice.system': 'Computer voice',
   'mode.ctf': 'Capture the Flag',
   'mode.tdm': 'Team Deathmatch',
   'mode.ffa': 'Free for All',
@@ -96,6 +98,10 @@ const en = {
   'say.teamWins': '{team} team wins!',
   'say.playerWins': '{name} wins!',
   'say.draw': "It's a draw!",
+  // Recorded announcer clips can't say player names, so these lines go without.
+  'clip.onFire': 'On fire!',
+  'clip.legendary': 'Legendary!',
+  'clip.playerWins': 'We have a winner!',
 
   // big messages
   'ba.scores': '{team|up} SCORES!',
@@ -113,9 +119,12 @@ const en = {
   'ft.double': 'DOUBLE KILL!',
   'ft.triple': 'TRIPLE KILL!',
   'ft.unstoppable': 'UNSTOPPABLE!',
+  'ft.bonk': 'BONK!',
+  'ft.frozen': 'FROZEN!',
   'pk.health': '+50 HP',
   'pk.grenades': '+2 GRENADES',
   'pk.power': 'DOUBLE DAMAGE!',
+  'pk.hole': '+2 BLACK HOLES',
 
   'w.blaster': 'Blaster',
   'w.shotgun': 'Shotgun',
@@ -124,6 +133,9 @@ const en = {
   'w.rocket': 'Rockets',
   'w.flamer': 'Flamer',
   'w.bouncer': 'Bouncer',
+  'w.freeze': 'Freeze Ray',
+  'w.bees': 'Bee Swarm',
+  'w.hammer': 'Big Hammer',
 
   // phone
   'ph.name': 'Your name',
@@ -164,6 +176,7 @@ const en = {
   'ph.lost': 'Lost connection… reconnecting',
   'ph.flagHome': '🚩 You have the flag! Bring it home!',
   'ph.power': '⚡ DOUBLE DAMAGE!',
+  'ph.frozen': '❄️ FROZEN! Wait a second…',
   'ph.readyDots': 'Get ready…',
   'ph.teamLabel': '{team} team',
   'ph.ffa': 'Free for all',
@@ -206,6 +219,8 @@ const ar = {
   'set.time': 'الوقت',
   'set.assist': 'مساعدة التصويب',
   'set.lang': 'اللغة',
+  'set.voice': 'صوت المعلّق',
+  'voice.system': 'صوت الجهاز',
   'mode.ctf': 'التقاط العلم',
   'mode.tdm': 'معركة الفرق',
   'mode.ffa': 'الكل ضد الكل',
@@ -261,6 +276,9 @@ const ar = {
   'say.teamWins': 'الفريق {team} يفوز!',
   'say.playerWins': '{name} يفوز!',
   'say.draw': 'تعادل!',
+  'clip.onFire': 'مشتعل!',
+  'clip.legendary': 'بطل أسطوري!', // on its own the first sound gets lost
+  'clip.playerWins': 'لدينا فائز!',
 
   'ba.scores': 'الفريق {team} يسجّل!',
   'ba.scoresSub': '{name} التقط العلم',
@@ -277,9 +295,12 @@ const ar = {
   'ft.double': 'ضربة مزدوجة!',
   'ft.triple': 'ضربة ثلاثية!',
   'ft.unstoppable': 'لا أحد يوقفه!',
+  'ft.bonk': 'طاخ!',
+  'ft.frozen': 'تجمّد!',
   'pk.health': '+50 صحة',
   'pk.grenades': '+2 قنابل',
   'pk.power': 'ضرر مضاعف!',
+  'pk.hole': '+2 ثقوب سوداء',
 
   'w.blaster': 'مسدس الليزر',
   'w.shotgun': 'بندقية الرش',
@@ -288,6 +309,9 @@ const ar = {
   'w.rocket': 'الصواريخ',
   'w.flamer': 'قاذف اللهب',
   'w.bouncer': 'الكرات المرتدّة',
+  'w.freeze': 'شعاع التجميد',
+  'w.bees': 'سرب النحل',
+  'w.hammer': 'المطرقة الكبيرة',
 
   'ph.name': 'اسمك',
   'ph.namePh': 'اكتب اسمك',
@@ -327,6 +351,7 @@ const ar = {
   'ph.lost': 'انقطع الاتصال… جارٍ إعادة الاتصال',
   'ph.flagHome': '🚩 معك العلم! أرجِعه إلى قاعدتك!',
   'ph.power': '⚡ ضرر مضاعف!',
+  'ph.frozen': '❄️ تجمّدت! انتظر لحظة…',
   'ph.readyDots': 'استعدّ…',
   'ph.teamLabel': 'الفريق {team}',
   'ph.ffa': 'الكل ضد الكل',
@@ -394,6 +419,7 @@ export function settingText(s) {
     case 'time': return t('minutes', { n: s.v });
     case 'assist': return t(s.v ? 'on' : 'off');
     case 'lang': return t(`lang.${s.v}`);
+    case 'voice': return s.v === 'system' ? t('voice.system') : s.label?.[lang] || s.label?.en || s.v;
     default: return String(s.v);
   }
 }

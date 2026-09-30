@@ -4,7 +4,7 @@
 // `hooks` (shoot, hit, explode, kill, flag, ...) and the host turns those into
 // events for screens, announcer lines and phone vibrations.
 
-import { WEAPONS, GRENADE } from './weapons.js';
+import { WEAPONS, GRENADE, HOLE, FREEZE, SWING } from './weapons.js';
 import { clamp, rand, approach, angleDiff, segAABB, distToBox } from './util.js';
 import { updateBot } from './bots.js';
 
@@ -67,6 +67,7 @@ export class Game {
       hp: 100, alive: false, respawnT: 0, prot: 0,
       fuel: 1, jetting: false, weapon: 'blaster', ammo: Infinity, gren: GRENADE.start, fireCd: 0,
       burnT: 0, burnBy: null, powerT: 0, hitFlash: 0, muzzleT: 0, runPhase: 0,
+      chill: 0, frozenT: 0, iceProt: 0, swingT: 0, swingAng: 0, swingHits: [], holes: 0,
       carrying: null, lastHitBy: null, lastHitT: -99,
       kills: 0, deaths: 0, caps: 0, returns: 0, streak: 0, multi: 0, lastKillT: -99,
       input: input || { mx: 0, my: 0, aim: 0, aiming: false, fire: false, gren: 0 },
@@ -109,6 +110,7 @@ export class Game {
       x: s.x + rand(-8, 8), y: s.y, vx: 0, vy: 0, onGround: true, airT: 0,
       hp: 100, alive: true, prot: 2, fuel: 1, weapon: 'blaster', ammo: Infinity,
       gren: GRENADE.start, burnT: 0, powerT: 0, carrying: null, streak: 0, fireCd: 0.25, hitFlash: 0,
+      chill: 0, frozenT: 0, iceProt: 0, swingT: 0, holes: 0,
     });
     const left = p.x < this.map.W / 2;
     p.aim = left ? -0.05 : Math.PI + 0.05;
@@ -172,16 +174,18 @@ export class Game {
       return;
     }
     if (p.y > this.map.H + 200) this.kill(p, null, 'fall');
+    if (p.swingT > 0) this.updateSwing(p, dt);
 
-    // Right stick: aim + fire.
+    // Right stick: aim + fire. Nothing works from inside an ice block.
+    const stuck = frozen || p.frozenT > 0;
     p.fireCd = Math.max(p.fireCd - dt, -dt);
-    if (!frozen && inp.fire && p.fireCd <= 0 && this.phase !== 'ended') {
+    if (!stuck && inp.fire && p.fireCd <= 0 && this.phase !== 'ended') {
       this.fire(p);
     }
     if (inp.gren !== p.lastGren) {
       const presses = (inp.gren - p.lastGren) & 255;
       p.lastGren = inp.gren;
-      if (!frozen && presses > 0 && p.gren > 0 && this.phase !== 'ended') this.throwGrenade(p);
+      if (!stuck && presses > 0 && (p.gren > 0 || p.holes > 0) && this.phase !== 'ended') this.throwGrenade(p);
     }
   }
 
@@ -190,7 +194,19 @@ export class Game {
   // predict their own player without waiting for the network.
   movePlayer(p, dt, frozen) {
     const inp = p.input;
-    if (inp.aiming) p.aim = inp.aim;
+    // Frozen solid: no steering or aiming, and the ice block slides.
+    const iced = p.frozenT > 0;
+    if (iced) {
+      p.frozenT -= dt;
+      if (p.frozenT <= 0) {
+        p.frozenT = 0;
+        p.iceProt = FREEZE.immune;
+        this.emit('thaw', p);
+      }
+    } else if (p.iceProt > 0) p.iceProt -= dt;
+    if (p.chill > 0) p.chill = Math.max(0, p.chill - FREEZE.decay * dt);
+    if (iced) frozen = true;
+    if (inp.aiming && !iced) p.aim = inp.aim;
     p.facing = Math.cos(p.aim) >= 0 ? 1 : -1;
 
     // Left stick: small dead zone, full speed at ~75% tilt (easy for small thumbs).
@@ -202,9 +218,15 @@ export class Game {
     let speed = PHYS.RUN;
     if (w.slow && inp.fire) speed *= w.slow;
     if (p.powerT > 0) speed *= 1.12;
+    if (p.chill > 0) speed *= 1 - 0.5 * p.chill;
     const target = frozen ? 0 : mx * speed;
-    // After a jump pad or explosion, keep the momentum unless the stick fights it.
-    if (!p.onGround && p.fling && Math.abs(p.vx) > Math.abs(target) && (target === 0 || Math.sign(target) === Math.sign(p.vx))) {
+    const pulled = this.projectiles.length > 0 && this.pull(p, dt);
+    if (iced) {
+      if (p.onGround) p.vx = approach(p.vx, 0, 320 * dt);
+    } else if (pulled) {
+      // Inside a black hole's reach the sticks only fight it weakly.
+      p.vx = approach(p.vx, target, PHYS.ACC_AIR * 0.35 * dt);
+    } else if (!p.onGround && p.fling && Math.abs(p.vx) > Math.abs(target) && (target === 0 || Math.sign(target) === Math.sign(p.vx))) {
       p.vx = approach(p.vx, target, PHYS.FLING_DRAG * dt);
     } else {
       p.vx = approach(p.vx, target, (p.onGround ? PHYS.ACC_GROUND : PHYS.ACC_AIR) * dt);
@@ -237,7 +259,7 @@ export class Game {
       p.onGround = false;
     }
     p.dropT -= dt;
-    p.vy = Math.min(p.vy + PHYS.GRAV * (down && !p.onGround ? 1.5 : 1) * dt, PHYS.MAX_FALL);
+    p.vy = Math.min(p.vy + PHYS.GRAV * (down && !p.onGround ? 1.5 : 1) * (pulled ? 0.3 : 1) * dt, PHYS.MAX_FALL);
 
     const wasGround = p.onGround;
     const fallV = p.vy;
@@ -252,6 +274,30 @@ export class Game {
     }
     if (this.map.pads.length) this.checkPads(p);
     if (this.map.teles.length) this.checkTeles(p);
+  }
+
+  // Active black holes drag enemies toward their center (almost weightless).
+  pull(p, dt) {
+    let any = false;
+    for (const b of this.projectiles) {
+      if (b.kind !== 'hole' || !b.active || b.dead) continue;
+      if (b.owner === p.pid || (this.teamMode && b.team === p.team)) continue;
+      const dx = b.x - p.x;
+      const dy = b.y - (p.y - p.h / 2);
+      const d = Math.hypot(dx, dy);
+      if (d > HOLE.radius || d < 1) continue;
+      const a = HOLE.pull * (0.25 + 0.75 * (1 - d / HOLE.radius)) * dt;
+      p.vx += (dx / d) * a;
+      p.vy += (dy / d) * a;
+      if (d < 70) {
+        const k = Math.exp(-5 * dt);
+        p.vx *= k;
+        p.vy *= k;
+      }
+      p.fling = true;
+      any = true;
+    }
+    return any;
   }
 
   checkPads(p) {
@@ -306,9 +352,12 @@ export class Game {
       input: { mx: 0, my: 0, aim: 0, aiming: false, fire: false, gren: 0 },
     };
     const pads = this.map.pads;
+    const shots = this.projectiles;
     this.map.pads = [];
+    this.projectiles = [];
     for (let i = 0; i < 400 && !p.onGround; i++) this.movePlayer(p, STEP, false);
     this.map.pads = pads;
+    this.projectiles = shots;
     return p.onGround ? { x: p.x, y: p.y } : null;
   }
 
@@ -398,6 +447,8 @@ export class Game {
 
     if (w.kind === 'rail') {
       this.fireRail(p, sx, sy, ang, w);
+    } else if (w.kind === 'melee') {
+      this.swing(p, ang, w);
     } else {
       const n = w.pellets || 1;
       for (let i = 0; i < n; i++) {
@@ -449,15 +500,55 @@ export class Game {
     if (hitWall) this.emit('impact', hx, hy, wallHit.nx, wallHit.ny, w.color, 'rail');
   }
 
+  // Hammer: lunge along the aim, then a big hitbox in front for a moment.
+  swing(p, ang, w) {
+    p.swingT = SWING;
+    p.swingAng = ang;
+    p.swingHits.length = 0;
+    const c = Math.cos(ang);
+    const s = Math.sin(ang);
+    p.vx = c * w.dash;
+    if (s < -0.3) p.vy = Math.min(p.vy, s * w.dash * 0.75);
+    else if (s > 0.5 && !p.onGround) p.vy = Math.max(p.vy, s * w.dash);
+    else if (p.onGround) p.vy = Math.min(p.vy, -280); // a little leap
+    p.onGround = false;
+    p.fling = true;
+  }
+
+  updateSwing(p, dt) {
+    p.swingT -= dt;
+    const w = WEAPONS.hammer;
+    const c = Math.cos(p.swingAng);
+    const s = Math.sin(p.swingAng);
+    const hx = p.x + c * 46;
+    const hy = p.y - PHYS.SHOULDER + s * 46;
+    for (const o of this.players.values()) {
+      if (!o.alive || !this.isEnemy(p, o) || p.swingHits.includes(o.pid)) continue;
+      const l = o.x - o.w / 2;
+      const r = o.x + o.w / 2;
+      if (distToBox(hx, hy, l, o.y - o.h, r, o.y) > w.reach) continue;
+      p.swingHits.push(o.pid);
+      const bx = clamp(hx, l, r);
+      const by = clamp(hy, o.y - o.h, o.y);
+      // Hitting an ice block shatters it for extra damage.
+      const shatter = o.frozenT > 0;
+      if (shatter) o.frozenT = 0.001;
+      const ky = Math.min(s, 0) * w.knock * 0.5 - 480;
+      if (this.damage(o, w.dmg * (shatter ? 1.5 : 1), p, 'hammer', c * w.knock, ky, false, bx, by)) this.emit('bonk', bx, by);
+    }
+  }
+
   throwGrenade(p) {
-    p.gren--;
+    const hole = p.holes > 0;
+    if (hole) p.holes--;
+    else p.gren--;
     const a = p.aim;
     const sp = GRENADE.speed;
     this.projectiles.push({
-      id: this.nextId++, kind: 'grenade', wkey: 'grenade', owner: p.pid, team: p.team,
+      id: this.nextId++, kind: hole ? 'hole' : 'grenade', wkey: hole ? 'hole' : 'grenade', owner: p.pid, team: p.team,
       x: p.x, y: p.y - PHYS.SHOULDER,
       vx: Math.cos(a) * sp + p.vx * 0.4, vy: Math.sin(a) * sp - 180 + p.vy * 0.3,
-      life: GRENADE.fuse, age: 0, gravity: 1500, drag: 0.15, spin: 0,
+      life: hole ? HOLE.fuse : GRENADE.fuse, age: 0, gravity: 1500, drag: 0.15, spin: 0,
     });
     this.emit('throw', p);
   }
@@ -492,7 +583,8 @@ export class Game {
       nx = wallHit.nx;
       ny = wallHit.ny;
     }
-    if (b.kind === 'grenade' && dy > 0) {
+    const lob = b.kind === 'grenade' || b.kind === 'hole';
+    if (lob && dy > 0) {
       for (const pl of this.map.plats) {
         if (b.y <= pl.y && y1 >= pl.y) {
           const t = (pl.y - b.y) / dy;
@@ -506,7 +598,7 @@ export class Game {
       }
     }
 
-    if (b.kind !== 'grenade') {
+    if (!lob) {
       let target = null;
       let tBest = Math.min(wallT, 1);
       for (const o of this.players.values()) {
@@ -530,12 +622,12 @@ export class Game {
         // Started inside a wall.
         b.x = hx;
         b.y = hy;
-        if (b.kind === 'grenade') { b.vx = 0; b.vy = 0; } else if (b.kind === 'rocket') this.explodeProjectile(b);
+        if (lob) { b.vx = 0; b.vy = 0; } else if (b.kind === 'rocket') this.explodeProjectile(b);
         else b.dead = true;
         return;
       }
-      if (b.kind === 'grenade' || b.kind === 'bounce') {
-        const grenade = b.kind === 'grenade';
+      if (lob || b.kind === 'bounce') {
+        const grenade = lob;
         const rest = grenade ? 0.45 : 0.92;
         b.x = hx + nx * 0.6;
         b.y = hy + ny * 0.6;
@@ -582,7 +674,59 @@ export class Game {
       o.burnT = WEAPONS.flamer.burn;
       o.burnBy = b.owner;
     }
+    if (hurt && b.kind === 'ice') this.chill(o, WEAPONS.freeze.chill, owner);
     b.dead = true;
+  }
+
+  // Freeze ray hits fill a meter; when it is full the target turns to ice.
+  chill(o, amount, by) {
+    if (!o.alive || o.frozenT > 0 || o.iceProt > 0) return;
+    o.chill = Math.min(1, o.chill + amount);
+    if (o.chill < 1) return;
+    o.chill = 0;
+    o.frozenT = FREEZE.time;
+    o.jetting = false;
+    o.burnT = 0;
+    this.emit('freeze', o, by);
+  }
+
+  // Bees turn toward the nearest enemy they can see.
+  steerBee(b, dt) {
+    b.seekT = (b.seekT || 0) - dt;
+    if (b.seekT <= 0) {
+      b.seekT = 0.1;
+      b.target = null;
+      let best = WEAPONS.bees.seek;
+      for (const o of this.players.values()) {
+        if (!o.alive || o.pid === b.owner || (this.teamMode && o.team === b.team)) continue;
+        const d = Math.hypot(o.x - b.x, o.y - o.h / 2 - b.y);
+        if (d < best && this.los(b.x, b.y, o.x, o.y - o.h / 2)) {
+          best = d;
+          b.target = o;
+        }
+      }
+    }
+    const o = b.target;
+    if (!o || !o.alive) return;
+    const cur = Math.atan2(b.vy, b.vx);
+    const want = Math.atan2(o.y - o.h / 2 - b.y, o.x - b.x);
+    const turn = WEAPONS.bees.turn * dt;
+    const a = cur + clamp(angleDiff(cur, want), -turn, turn);
+    const sp = Math.hypot(b.vx, b.vy);
+    b.vx = Math.cos(a) * sp;
+    b.vy = Math.sin(a) * sp;
+  }
+
+  // A black hole grenade's fuse ran out: float up a little and start pulling.
+  openHole(b) {
+    b.active = true;
+    b.vx = 0;
+    b.vy = 0;
+    b.gravity = 0;
+    b.life = HOLE.life;
+    const rise = this.raySolids(b.x, b.y, b.x, b.y - 70, wallHit) ? Math.max(0, wallHit.t * 70 - 24) : 46;
+    b.y -= rise;
+    this.emit('hole', b);
   }
 
   explodeProjectile(b) {
@@ -618,6 +762,15 @@ export class Game {
       if (b.dead) continue;
       b.age += dt;
       b.life -= dt;
+      if (b.active) {
+        // A hovering black hole: pulling happens in movePlayer. Then it pops.
+        if (b.life <= 0) {
+          b.dead = true;
+          this.explode(b.x, b.y, b.owner, 'hole', HOLE.dmg, HOLE.blast);
+        }
+        continue;
+      }
+      if (b.kind === 'bee' && b.age > 0.12) this.steerBee(b, dt);
       if (b.gravity) b.vy += b.gravity * dt;
       if (b.drag) {
         const f = Math.exp(-b.drag * dt);
@@ -635,7 +788,8 @@ export class Game {
       }
       this.moveProjectile(b, b.vx * dt, b.vy * dt);
       if (!b.dead && b.life <= 0) {
-        if (b.kind === 'grenade' || b.kind === 'rocket') this.explodeProjectile(b);
+        if (b.kind === 'hole') this.openHole(b);
+        else if (b.kind === 'grenade' || b.kind === 'rocket') this.explodeProjectile(b);
         else b.dead = true;
       }
     }
@@ -855,6 +1009,10 @@ export class Game {
         return true;
       case 'power':
         p.powerT = 12;
+        return true;
+      case 'hole':
+        if (p.holes >= HOLE.max) return false;
+        p.holes = HOLE.max;
         return true;
     }
     return false;

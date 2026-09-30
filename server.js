@@ -27,6 +27,7 @@ const MIME = {
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.json': 'application/json',
+  '.mp3': 'audio/mpeg',
   '.webmanifest': 'application/manifest+json',
 };
 
@@ -115,6 +116,7 @@ const host = new Host(
     hasScreens: () => screens.size > 0,
   },
   process.env.SETTINGS_FILE || path.join(ROOT, '.settings.json'),
+  path.join(PUBLIC, 'voices'),
 );
 
 function allocPid() {

@@ -4,6 +4,7 @@
 // receive snapshots; every phone receives its own HUD and vibrations.
 
 import fs from 'node:fs';
+import path from 'node:path';
 import { MAPS } from '../public/js/maps.js';
 import { Game, TEAM_COLOR, STEP, blankInput } from '../public/js/game.js';
 import { makeBot, BOT_NAMES, BOT_NAMES_AR } from '../public/js/bots.js';
@@ -18,13 +19,17 @@ const TIMES = [5, 10, 15];
 const BOT_COLORS = ['#ffcc4d', '#5dff8a', '#ff7ae0', '#7df9ff', '#ff9f43', '#b28dff', '#a3ff5c', '#ffffff'];
 export const KB_PID = 900;
 const BOT_PID = 1000;
-const DEFAULTS = { mode: 'ctf', map: 0, bots: 2, skill: 'easy', limit: 0, time: 1, assist: true, screen: 'tv', lang: 'en' };
+const DEFAULTS = { mode: 'ctf', map: 0, bots: 2, skill: 'easy', limit: 0, time: 1, assist: true, screen: 'tv', lang: 'en', voice: 'announcer' };
+// Settings that only change what screens say or show, so they can change mid-match.
+const LIVE_SETTINGS = ['lang', 'voice'];
 
 export class Host {
   // net: { phone(pid, str), phones(str), screens(str), hasScreens() }
-  constructor(net, settingsFile) {
+  constructor(net, settingsFile, voicesDir) {
     this.net = net;
     this.settingsFile = settingsFile;
+    this.voicesDir = voicesDir;
+    this.packs = this.voicePacks();
     this.settings = { ...DEFAULTS, ...this.loadSettings() };
     if (!(this.settings.map >= 0 && this.settings.map < MAPS.length)) this.settings.map = 0;
     this.lobby = new Map(); // pid -> { pid, name, color, team, connected, joinedAt, leftAt, keyboard, view }
@@ -59,6 +64,33 @@ export class Host {
     } catch {
       /* read-only folder: settings just won't persist */
     }
+  }
+
+  // Announcer voice packs: folders in public/voices with a manifest.json
+  // (made by `npm run voices`). The built-in "announcer" pack comes first.
+  voicePacks() {
+    let ids = [];
+    try {
+      ids = fs.readdirSync(this.voicesDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
+    } catch {
+      return [];
+    }
+    ids.sort((a, b) => (a === 'announcer' ? -1 : b === 'announcer' ? 1 : a.localeCompare(b)));
+    const packs = [];
+    for (const id of ids) {
+      try {
+        const m = JSON.parse(fs.readFileSync(path.join(this.voicesDir, id, 'manifest.json'), 'utf8'));
+        packs.push({ id, label: m.name || { en: id } });
+      } catch {
+        /* not a voice pack */
+      }
+    }
+    return packs;
+  }
+
+  voiceNow() {
+    const v = this.settings.voice;
+    return this.packs.some((p) => p.id === v) ? v : 'system';
   }
 
   toPhone(pid, obj) {
@@ -135,7 +167,7 @@ export class Host {
         }
         break;
       case 'set':
-        if (pid === cap && (this.screen === 'lobby' || m.key === 'lang')) this.changeSetting(m.key, 1);
+        if (pid === cap && (this.screen === 'lobby' || LIVE_SETTINGS.includes(m.key))) this.changeSetting(m.key, 1);
         break;
       case 'start':
         if (pid === cap && this.screen === 'lobby') this.startMatch();
@@ -185,7 +217,7 @@ export class Host {
   screenMessage(m) {
     switch (m.t) {
       case 'set':
-        if (this.screen === 'lobby' || m.key === 'lang') this.changeSetting(m.key, m.dir === -1 ? -1 : 1);
+        if (this.screen === 'lobby' || LIVE_SETTINGS.includes(m.key)) this.changeSetting(m.key, m.dir === -1 ? -1 : 1);
         break;
       case 'start':
         if (this.screen !== 'game') this.startMatch();
@@ -244,6 +276,10 @@ export class Host {
       case 'assist': s.assist = !s.assist; break;
       case 'screen': s.screen = s.screen === 'tv' ? 'phone' : 'tv'; break;
       case 'lang': s.lang = s.lang === 'ar' ? 'en' : 'ar'; break;
+      case 'voice':
+        this.packs = this.voicePacks();
+        s.voice = cyc([...this.packs.map((p) => p.id), 'system'], this.voiceNow());
+        break;
       default: return;
     }
     this.saveSettings();
@@ -264,6 +300,7 @@ export class Host {
       { key: 'time', v: TIMES[s.time] },
       { key: 'assist', v: s.assist },
       { key: 'lang', v: s.lang },
+      { key: 'voice', v: this.voiceNow(), label: this.packs.find((p) => p.id === this.voiceNow())?.label },
     ];
   }
 
@@ -292,6 +329,7 @@ export class Host {
       map: MAPS[this.settings.map].id,
       screenMode: this.settings.screen,
       lang: this.settings.lang,
+      voice: this.voiceNow(),
       bots: this.settings.bots,
       botSplit: this.botSplit(),
       canStart: players.some((p) => p.connected) || this.settings.bots >= 2,
@@ -488,7 +526,7 @@ export class Host {
         this.vibe(o.pid, [Math.min(70, 18 + amt)]);
       },
       shielded: (o, x, y) => E('sd', r(x), r(y)),
-      explode: (x, y, rad) => E('ex', r(x), r(y), rad),
+      explode: (x, y, rad, w) => E('ex', r(x), r(y), rad, w),
       kill: (k, v, w, special) => {
         E('kl', k ? k.pid : 0, v.pid, w);
         this.onKill(k, v, special);
@@ -506,8 +544,15 @@ export class Host {
       },
       throw: (p) => E('th', p.pid),
       bounce: (b, x, y) => {
-        if (b.kind === 'grenade') E('bn', r(x), r(y));
+        if (b.kind === 'grenade' || b.kind === 'hole') E('bn', r(x), r(y));
       },
+      freeze: (p) => {
+        E('fz', p.pid);
+        this.vibe(p.pid, [60, 40, 120], true);
+      },
+      thaw: (p) => E('uf', p.pid),
+      bonk: (x, y) => E('bk', r(x), r(y)),
+      hole: (b) => E('ho', r(b.x), r(b.y)),
       empty: (p) => E('em', p.pid),
       pad: (p, pad) => E('pd', p.pid, r(pad.x), r(pad.y)),
       tele: (p, ox, oy, d) => E('tp', p.pid, r(ox), r(oy), r(d.x), r(d.y)),
@@ -620,6 +665,8 @@ export class Host {
         wn: WEAPONS[p.weapon].name,
         a: p.ammo === Infinity ? -1 : p.ammo,
         g: p.gren,
+        h: p.holes,
+        fz: p.frozenT > 0 ? 1 : 0,
         f: Math.round(p.fuel * 10),
         al: p.alive ? 1 : 0,
         rs: p.alive ? 0 : Math.max(1, Math.ceil(p.respawnT)),

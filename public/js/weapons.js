@@ -28,12 +28,37 @@ export const WEAPONS = {
     name: 'Bouncer', kind: 'bounce', rate: 4, dmg: 16, speed: 1250, spread: 0.04, pellets: 1,
     ammo: 32, life: 2.2, bounces: 4, knock: 90, len: 38, color: '#7dff6b', gravity: 300,
   },
+  // Each shard adds `chill`; a full meter freezes the target in an ice block.
+  freeze: {
+    name: 'Freeze Ray', kind: 'ice', rate: 10, dmg: 3, speed: 1500, spread: 0.05, pellets: 1,
+    ammo: 90, life: 0.42, knock: 6, len: 40, color: '#9fe8ff', chill: 0.17,
+  },
+  // Three bees per shot that curve toward the nearest enemy.
+  bees: {
+    name: 'Bee Swarm', kind: 'bee', rate: 1.3, dmg: 15, speed: 760, spread: 0.32, pellets: 3,
+    ammo: 8, life: 2.4, knock: 110, len: 34, color: '#ffd23f', turn: 4.5, seek: 750,
+  },
+  // Melee: a dash plus a swing that launches whoever it hits.
+  hammer: {
+    name: 'Big Hammer', kind: 'melee', rate: 1.5, dmg: 55, ammo: 24, knock: 1150, len: 40,
+    color: '#ff5d73', reach: 78, dash: 700,
+  },
 };
 
 export const GRENADE = { dmg: 90, radius: 140, fuse: 1.6, speed: 880, max: 4, start: 2 };
 
+// Black hole grenades (from the swirl pickup): fly like a grenade, then float
+// and pull enemies in for a moment before they pop.
+export const HOLE = { fuse: 0.9, life: 2.2, radius: 430, pull: 2700, dmg: 75, blast: 170, max: 2 };
+
+// Frozen solid: how long it lasts, and how long before you can be frozen again.
+export const FREEZE = { time: 1.6, immune: 1.5, decay: 0.35 };
+
+export const SWING = 0.22; // hammer swing length in seconds
+
 // Emoji-free little glyphs used in the kill feed and on the phone.
 export const WEAPON_ICON = {
   blaster: '⟡', shotgun: '⁂', minigun: '≋', rail: '⌁', rocket: '➶', flamer: '♨', bouncer: '◉',
+  freeze: '❄︎', bees: '✲', hammer: '⚒︎', hole: '◎',
   grenade: '✹', burn: '♨',
 };

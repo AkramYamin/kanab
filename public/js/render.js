@@ -5,7 +5,7 @@
 // space so they stay readable when the TV camera zooms far out.
 
 import { PHYS, TEAM_COLOR } from './game.js';
-import { WEAPONS } from './weapons.js';
+import { WEAPONS, HOLE, SWING } from './weapons.js';
 import { TELE_COLORS } from './maps.js';
 import { TAU, rand, clamp, seeded, rgba, hexToRgb, pick } from './util.js';
 
@@ -64,7 +64,9 @@ function styleFor(p) {
 const TRACER = { red: '#ffa294', blue: '#94d6ff', ffa: '#fff0a0' };
 const bulletColor = (b) => (b.kind === 'bullet' ? TRACER[b.team] || '#ffffff' : b.color);
 
-const PICKUP_COLOR = { health: '#5dff8a', grenades: '#b8f060', power: '#ffcc33' };
+const PICKUP_COLOR = { health: '#5dff8a', grenades: '#b8f060', power: '#ffcc33', hole: '#b36bff' };
+const ICE = '#bfeaff';
+const HOLE_SWIRL = ['#d9b3ff', '#b36bff', '#ff7ae0', '#b36bff'];
 const PAD_COLOR = '#7dffb0';
 
 // ------------------------------------------------------------- particles
@@ -459,6 +461,55 @@ export function drawWeapon(ctx, key, t) {
       ctx.arc(12, 0, 4.5, 0, TAU);
       ctx.fill();
       break;
+    case 'freeze':
+      ctx.fillStyle = '#2a3f5a';
+      ctx.fillRect(3, 3, 5, 8);
+      ctx.fillStyle = '#e8f7ff';
+      rr(ctx, -4, -5.5, 30, 11, 5);
+      ctx.fill();
+      ctx.fillStyle = '#7fd8ff';
+      ctx.beginPath();
+      ctx.arc(7, -7, 5, 0, TAU);
+      ctx.fill();
+      ctx.fillStyle = '#4aa8d8';
+      ctx.fillRect(24, -3, 10, 6);
+      ctx.fillStyle = '#c9f3ff';
+      ctx.beginPath();
+      ctx.moveTo(34, -5.5);
+      ctx.lineTo(41, 0);
+      ctx.lineTo(34, 5.5);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    case 'bees':
+      ctx.fillStyle = '#2a2f3a';
+      ctx.fillRect(3, 4, 5, 8);
+      ctx.fillStyle = '#f4b73a';
+      rr(ctx, -2, -8, 32, 16, 8);
+      ctx.fill();
+      ctx.fillStyle = '#b87417';
+      for (let i = 0; i < 3; i++) ctx.fillRect(5 + i * 8, -8, 3, 16);
+      ctx.fillStyle = '#3a2208';
+      ctx.beginPath();
+      ctx.arc(29, 0, 4.5, 0, TAU);
+      ctx.fill();
+      break;
+    case 'hammer':
+      ctx.fillStyle = '#a0703f';
+      rr(ctx, -2, -2.5, 34, 5, 2.5);
+      ctx.fill();
+      ctx.fillStyle = '#ff5d73';
+      rr(ctx, 26, -15, 18, 30, 7);
+      ctx.fill();
+      ctx.fillStyle = '#ffd35c';
+      rr(ctx, 23, -16, 6, 32, 3);
+      ctx.fill();
+      rr(ctx, 41, -16, 6, 32, 3);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      rr(ctx, 31, -12, 5, 10, 2.5);
+      ctx.fill();
+      break;
   }
 }
 
@@ -560,6 +611,10 @@ export class Renderer {
   muzzle(p, wkey, x, y, ang) {
     const w = WEAPONS[wkey];
     const fx = this.fx;
+    if (w.kind === 'melee') {
+      this.dust(p.x, p.y, 3);
+      return;
+    }
     fx.add({ type: 'glow', x, y, vx: 0, vy: 0, life: 0.07, size: wkey === 'flamer' ? 26 : 50, color: w.color });
     if (wkey !== 'flamer') {
       for (let i = 0; i < 2; i++) {
@@ -622,26 +677,30 @@ export class Renderer {
     }
   }
 
-  explosion(x, y, r) {
+  explosion(x, y, r, kind) {
     const fx = this.fx;
     if (this.inView(x, y, 200)) {
       this.shake = Math.min(18, this.shake + r * 0.075);
       this.flash = Math.min(0.25, this.flash + 0.1);
     }
-    fx.add({ type: 'glow', x, y, vx: 0, vy: 0, life: 0.3, size: r * 3.2, color: '#fff2c0' });
-    fx.add({ type: 'glow', x, y, vx: 0, vy: 0, life: 0.5, size: r * 2.2, color: '#ff7a2d' });
-    fx.add({ type: 'ring', x, y, vx: 0, vy: 0, life: 0.4, size: r * 1.3, w: 12, color: '#ffd9a0' });
+    // Black holes pop in purple; everything else is fire.
+    const c = kind === 'hole'
+      ? { core: '#f0e0ff', hot: '#9b4dff', ring: '#d9b3ff', sparks: ['#f0d6ff', '#b36bff', '#ffffff'], puff: '#a45cff', smoke: '#3a2a52' }
+      : { core: '#fff2c0', hot: '#ff7a2d', ring: '#ffd9a0', sparks: ['#ffe08a', '#ff9a3d', '#ffffff'], puff: '#ff8a2d' };
+    fx.add({ type: 'glow', x, y, vx: 0, vy: 0, life: 0.3, size: r * 3.2, color: c.core });
+    fx.add({ type: 'glow', x, y, vx: 0, vy: 0, life: 0.5, size: r * 2.2, color: c.hot });
+    fx.add({ type: 'ring', x, y, vx: 0, vy: 0, life: 0.4, size: r * 1.3, w: 12, color: c.ring });
     for (let i = 0; i < 22; i++) {
       const a = rand(TAU);
       const sp = rand(350, 1100);
-      fx.add({ type: 'spark', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.25, 0.55), w: 3, color: pick(['#ffe08a', '#ff9a3d', '#ffffff']), drag: 3.2, grav: 700 });
+      fx.add({ type: 'spark', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.25, 0.55), w: 3, color: pick(c.sparks), drag: 3.2, grav: 700 });
     }
     for (let i = 0; i < 7; i++) {
       const a = rand(TAU);
       const sp = rand(40, 240);
-      fx.add({ type: 'glow', x: x + Math.cos(a) * 20, y: y + Math.sin(a) * 20, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80, life: rand(0.3, 0.5), size: rand(50, 90), color: '#ff8a2d', drag: 3 });
+      fx.add({ type: 'glow', x: x + Math.cos(a) * 20, y: y + Math.sin(a) * 20, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80, life: rand(0.3, 0.5), size: rand(50, 90), color: c.puff, drag: 3 });
     }
-    const smoke = this.map?.theme.smoke || '#4a4452';
+    const smoke = c.smoke || this.map?.theme.smoke || '#4a4452';
     for (let i = 0; i < 8; i++) {
       fx.add({ type: 'smoke', x: x + rand(-25, 25), y: y + rand(-25, 25), vx: rand(-150, 150), vy: rand(-220, -40), life: rand(0.7, 1.3), size: rand(20, 38), grow: 1.3, color: smoke, alpha: 0.45, drag: 1.6 });
     }
@@ -667,6 +726,7 @@ export class Renderer {
       });
     }
     fx.add({ type: 'chunk', x, y: p.y - p.h, vx: rand(-200, 200), vy: -800, grav: 1800, life: 1.6, sw: 16, sh: 12, color: st.body, rot: 0, vr: rand(-16, 16), collide: true });
+    if (p.frozenT > 0) this.iceBurst(x, y, 14);
     for (let i = 0; i < 10; i++) {
       const a = rand(TAU);
       const sp = rand(200, 600);
@@ -731,6 +791,59 @@ export class Renderer {
 
   banner(x, y, label, color) {
     this.texts.push({ label, x, y, vy: -30, age: 0, life: 1.6, color, size: 26 });
+  }
+
+  iceBurst(x, y, n) {
+    for (let i = 0; i < n; i++) {
+      this.fx.add({
+        type: 'chunk', x: x + rand(-14, 14), y: y + rand(-26, 26), vx: rand(-380, 380), vy: rand(-620, -120), grav: 1700,
+        life: rand(0.7, 1.1), sw: rand(4, 9), sh: rand(3, 7), color: pick([ICE, '#ffffff', '#8fd3ff']), rot: rand(TAU), vr: rand(-14, 14), collide: true,
+      });
+    }
+    for (let i = 0; i < 8; i++) {
+      const a = rand(TAU);
+      this.fx.add({ type: 'spark', x, y, vx: Math.cos(a) * 420, vy: Math.sin(a) * 420, life: 0.25, w: 2.5, color: '#ffffff', drag: 5 });
+    }
+  }
+
+  // label: floating word in this screen's language ("FROZEN!").
+  freezeFx(p, label) {
+    const y = p.y - p.h / 2;
+    this.fx.add({ type: 'glow', x: p.x, y, vx: 0, vy: 0, life: 0.45, size: 170, color: ICE });
+    this.fx.add({ type: 'ring', x: p.x, y, vx: 0, vy: 0, life: 0.4, size: 80, w: 7, color: '#ffffff' });
+    for (let i = 0; i < 12; i++) {
+      const a = rand(TAU);
+      const sp = rand(150, 380);
+      this.fx.add({ type: 'spark', x: p.x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.2, 0.4), w: 2.5, color: pick([ICE, '#ffffff']), drag: 5 });
+    }
+    if (label) this.texts.push({ label, x: p.x, y: p.y - p.h - 85, vy: -35, age: 0, life: 1.2, color: '#bfeaff', size: 22 });
+  }
+
+  thawFx(p) {
+    this.iceBurst(p.x, p.y - p.h / 2, 12);
+    this.fx.add({ type: 'ring', x: p.x, y: p.y - p.h / 2, vx: 0, vy: 0, life: 0.3, size: 70, w: 5, color: ICE });
+  }
+
+  bonk(x, y, label) {
+    if (this.inView(x, y)) this.shake = Math.min(18, this.shake + 5);
+    this.fx.add({ type: 'glow', x, y, vx: 0, vy: 0, life: 0.25, size: 150, color: '#fff3c4' });
+    this.fx.add({ type: 'ring', x, y, vx: 0, vy: 0, life: 0.3, size: 90, w: 8, color: '#ffd35c' });
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * TAU + rand(-0.15, 0.15);
+      const sp = rand(420, 700);
+      this.fx.add({ type: 'spark', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.18, 0.3), w: 4, color: pick(['#ffd35c', '#ffffff', '#ff5d73']), drag: 6 });
+    }
+    if (label) this.texts.push({ label, x: x - 30, y: y - 85, vy: -60, age: 0, life: 0.8, color: '#ffd35c', size: 30 });
+  }
+
+  holeFx(x, y) {
+    this.fx.add({ type: 'glow', x, y, vx: 0, vy: 0, life: 0.5, size: 260, color: '#9b4dff' });
+    this.fx.add({ type: 'ring', x, y, vx: 0, vy: 0, life: 0.5, size: 200, w: 10, color: '#d9b3ff' });
+    for (let i = 0; i < 16; i++) {
+      const a = rand(TAU);
+      const sp = rand(200, 500);
+      this.fx.add({ type: 'spark', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.2, 0.4), w: 3, color: pick(['#f0d6ff', '#b36bff', '#ff7ae0']), drag: 4 });
+    }
   }
 
   // -------------------------------------------------------------- frame
@@ -1121,6 +1234,9 @@ export class Renderer {
       if (p.powerT > 0 && Math.random() < 0.25) {
         fx.add({ type: 'spark', x: p.x + rand(-16, 16), y: p.y - rand(0, 52), vx: 0, vy: -120, life: 0.4, w: 2, color: '#ffe066' });
       }
+      if ((p.frozenT > 0 || p.chill > 0.25) && Math.random() < 0.3) {
+        fx.add({ type: 'spark', x: p.x + rand(-18, 18), y: p.y - rand(0, 64), vx: rand(-20, 20), vy: rand(-60, -20), life: 0.5, w: 2, color: '#e6f8ff' });
+      }
     }
     for (const b of world.projectiles) {
       if (!this.inView(b.x, b.y)) continue;
@@ -1132,6 +1248,23 @@ export class Renderer {
         if (Math.random() < 0.6) fx.add({ type: 'smoke', x: bx, y: by, vx: rand(-25, 25), vy: rand(-40, 0), life: rand(0.4, 0.7), size: 6, grow: 2.2, color: '#ddd6e6', alpha: 0.35, drag: 1.5 });
       } else if (b.kind === 'bounce') {
         fx.add({ type: 'glow', x: b.x, y: b.y, vx: 0, vy: 0, life: 0.16, size: 16, color: '#7dff6b' });
+      } else if (b.kind === 'ice') {
+        if (Math.random() < 0.4) fx.add({ type: 'spark', x: b.x, y: b.y, vx: rand(-40, 40), vy: rand(-40, 40), life: 0.25, w: 1.8, color: '#ffffff', drag: 3 });
+      } else if (b.kind === 'bee') {
+        if (Math.random() < 0.35) fx.add({ type: 'glow', x: b.x, y: b.y, vx: 0, vy: 0, life: 0.2, size: 12, color: '#ffd23f' });
+      } else if (b.kind === 'hole' && b.active) {
+        // Sparks spiral into the hole.
+        for (let i = 0; i < 3; i++) {
+          const a = rand(TAU);
+          const d = rand(120, 300);
+          const life = rand(0.35, 0.55);
+          const ta = a + Math.PI / 2;
+          fx.add({
+            type: 'spark', x: b.x + Math.cos(a) * d, y: b.y + Math.sin(a) * d,
+            vx: (-Math.cos(a) * d) / life + Math.cos(ta) * 180, vy: (-Math.sin(a) * d) / life + Math.sin(ta) * 180,
+            life, w: 2.5, color: pick(['#f0d6ff', '#b36bff', '#ff7ae0', '#ffffff']),
+          });
+        }
       }
     }
   }
@@ -1256,6 +1389,8 @@ export class Renderer {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('2×', 0, 1);
+      } else if (k.kind === 'hole') {
+        this.drawHoleCore(ctx, 0, 0, 0.8, t);
       }
       ctx.restore();
     }
@@ -1283,8 +1418,14 @@ export class Renderer {
     const st = styleFor(p);
     const f = p.facing;
     const fl = p.hitFlash;
-    const body = fl > 0 ? mixHex(st.body, '#ffffff', fl * 0.75) : st.body;
-    const dark = fl > 0 ? mixHex(st.dark, '#ffffff', fl * 0.5) : st.dark;
+    let body = fl > 0 ? mixHex(st.body, '#ffffff', fl * 0.75) : st.body;
+    let dark = fl > 0 ? mixHex(st.dark, '#ffffff', fl * 0.5) : st.dark;
+    const iced = p.frozenT > 0;
+    const cold = iced ? 1 : p.chill || 0;
+    if (cold > 0.02) {
+      body = mixHex(body, ICE, 0.6 * cold);
+      dark = mixHex(dark, '#6fa8c8', 0.6 * cold);
+    }
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.scale(PHYS.SCALE, PHYS.SCALE);
@@ -1310,7 +1451,9 @@ export class Renderer {
     let a2;
     let k1;
     let k2;
-    if (p.onGround && Math.abs(p.vx) > 25) {
+    if (iced) {
+      a1 = 0.1; a2 = -0.1; k1 = 0.06; k2 = 0.06;
+    } else if (p.onGround && Math.abs(p.vx) > 25) {
       const ph = p.runPhase || 0;
       const dirSign = Math.sign(p.vx) === f ? 1 : -1;
       a1 = Math.sin(ph) * 0.85 * dirSign;
@@ -1370,7 +1513,21 @@ export class Renderer {
     ctx.translate(f * 1, -34);
     ctx.rotate(p.aim);
     if (f < 0) ctx.scale(1, -1);
-    if (p.muzzleT > 0) ctx.translate(-3, 0);
+    if (p.weapon === 'hammer') {
+      // Held up ready; a swing sweeps from behind the head down through the aim.
+      const k = p.swingT > 0 ? 1 - p.swingT / SWING : 1;
+      const rel = p.swingT > 0 ? -1.9 + 2.4 * (1 - (1 - k) ** 3) : -0.55;
+      if (p.swingT > 0) {
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = `rgba(255,236,210,${(0.6 * (1 - k)).toFixed(3)})`;
+        ctx.lineWidth = 16;
+        ctx.beginPath();
+        ctx.arc(0, 0, 42, -1.9, rel);
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      ctx.rotate(rel);
+    } else if (p.muzzleT > 0) ctx.translate(-3, 0);
     ctx.lineCap = 'round';
     ctx.strokeStyle = mixHex(dark, '#000000', 0.2);
     ctx.lineWidth = 5;
@@ -1391,6 +1548,32 @@ export class Renderer {
     ctx.fill();
     ctx.restore();
 
+    if (iced) {
+      ctx.fillStyle = 'rgba(190,235,255,0.42)';
+      ctx.strokeStyle = 'rgba(235,250,255,0.9)';
+      ctx.lineWidth = 2.5;
+      rr(ctx, -22, -71, 44, 73, 7);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.beginPath();
+      ctx.moveTo(-16, -65);
+      ctx.lineTo(-8, -65);
+      ctx.lineTo(-17, -32);
+      ctx.lineTo(-17, -52);
+      ctx.closePath();
+      ctx.fill();
+      if (p.frozenT < 0.6) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(5, -71);
+        ctx.lineTo(-2, -52);
+        ctx.lineTo(9, -40);
+        ctx.lineTo(3, -20);
+        ctx.stroke();
+      }
+    }
     if (p.prot > 0) {
       const a = 0.35 + 0.25 * Math.sin(t * 14);
       ctx.strokeStyle = rgba(st.light, a);
@@ -1528,8 +1711,134 @@ export class Renderer {
           ctx.drawImage(glow('#ffffff'), b.x - 7, b.y - 7, 14, 14);
           ctx.globalCompositeOperation = 'source-over';
           break;
+        case 'ice':
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(glow('#9fe8ff'), b.x - 15, b.y - 15, 30, 30);
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.save();
+          ctx.translate(b.x, b.y);
+          ctx.rotate(b.age * 14);
+          ctx.fillStyle = '#eefbff';
+          ctx.beginPath();
+          ctx.moveTo(0, -6.5);
+          ctx.lineTo(3.5, 0);
+          ctx.lineTo(0, 6.5);
+          ctx.lineTo(-3.5, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+          break;
+        case 'bee':
+          this.drawBee(ctx, b);
+          break;
+        case 'hole':
+          if (b.active) this.drawHole(ctx, b, this.t);
+          else {
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.drawImage(glow('#9b4dff'), b.x - 22, b.y - 22, 44, 44);
+            ctx.globalCompositeOperation = 'source-over';
+            this.drawHoleCore(ctx, b.x, b.y, 0.45, this.t);
+          }
+          break;
       }
     }
+  }
+
+  drawBee(ctx, b) {
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = 0.6;
+    ctx.drawImage(glow('#ffd23f'), b.x - 16, b.y - 16, 32, 32);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    const a = Math.atan2(b.vy, b.vx);
+    ctx.save();
+    ctx.translate(b.x, b.y + Math.sin(b.age * 30 + b.id) * 2.5);
+    ctx.rotate(a);
+    ctx.scale(1.4, 1.4);
+    if (Math.cos(a) < 0) ctx.scale(1, -1); // stay the right way up
+    const flap = 0.5 + 0.5 * Math.sin(b.age * 80 + b.id);
+    ctx.fillStyle = 'rgba(235,248,255,0.85)';
+    ctx.beginPath();
+    ctx.ellipse(-2, -6, 4.5, 2 + flap * 3, -0.4, 0, TAU);
+    ctx.ellipse(2, -6, 4, 1.8 + flap * 2.6, 0.3, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = '#ffd23f';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 7.5, 4.8, 0, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = '#2a1d08';
+    ctx.fillRect(-3.4, -4.4, 2, 8.8);
+    ctx.fillRect(0.6, -4.4, 2, 8.8);
+    ctx.beginPath();
+    ctx.moveTo(-7, -1.6);
+    ctx.lineTo(-10.5, 0);
+    ctx.lineTo(-7, 1.6);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(6.2, -0.5, 3, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  drawHoleCore(ctx, x, y, s, t) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(s, s);
+    ctx.fillStyle = '#07030f';
+    ctx.beginPath();
+    ctx.arc(0, 0, 18, 0, TAU);
+    ctx.fill();
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) {
+      const a = t * 4 + (i * TAU) / 3;
+      ctx.strokeStyle = i ? '#b36bff' : '#ff7ae0';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, 22, a, a + 1.4);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  drawHole(ctx, b, t) {
+    const k = b.age - HOLE.fuse; // time since it opened
+    const left = HOLE.life - k;
+    const grow = clamp(k / 0.25, 0, 1) * (left < 0.2 ? 1 + (0.2 - left) * 2 : 1);
+    const R = HOLE.radius;
+    // Faint circle showing how far it reaches.
+    ctx.strokeStyle = `rgba(179,107,255,${(0.18 * grow).toFixed(3)})`;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([14, 12]);
+    ctx.lineDashOffset = -t * 60;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, R * (0.96 + 0.04 * Math.sin(t * 5)), 0, TAU);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = 0.7;
+    const g = 220 * grow;
+    ctx.drawImage(glow('#9b4dff'), b.x - g, b.y - g, g * 2, g * 2);
+    ctx.globalAlpha = 1;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 4; i++) {
+      const a = t * (5 + i) + (i * TAU) / 4;
+      const r = (34 + i * 12) * grow;
+      ctx.strokeStyle = HOLE_SWIRL[i];
+      ctx.globalAlpha = 0.75 - i * 0.12;
+      ctx.lineWidth = 5 - i;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, r, a, a + 2.2);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#05020c';
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, 24 * grow, 0, TAU);
+    ctx.fill();
+    ctx.strokeStyle = '#f0d6ff';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
   }
 
   drawParticles(ctx) {

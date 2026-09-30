@@ -2,7 +2,7 @@
 // on the TV and on phones. `ui` hooks are optional per screen.
 
 import { TELE_COLORS } from './maps.js';
-import { WEAPONS } from './weapons.js';
+import { WEAPONS, SWING } from './weapons.js';
 import { t } from './i18n.js';
 
 function pickupLabel(kind, weapon) {
@@ -11,6 +11,8 @@ function pickupLabel(kind, weapon) {
 }
 
 export function playEvents(events, world, R, A, ui = {}) {
+  // A hidden tab doesn't draw, so effects would pile up until it comes back.
+  if (typeof document !== 'undefined' && document.hidden) return;
   const P = (pid) => world.players.get(pid);
   for (const e of events) {
     switch (e[0]) {
@@ -18,6 +20,10 @@ export function playEvents(events, world, R, A, ui = {}) {
         const p = P(e[1]);
         if (p) {
           p.muzzleT = 0.06;
+          if (e[2] === 'hammer') {
+            p.swingT = SWING;
+            p.swingAng = e[5];
+          }
           R.muzzle(p, e[2], e[3], e[4], e[5]);
         }
         A?.shoot(e[2], e[3]);
@@ -45,8 +51,32 @@ export function playEvents(events, world, R, A, ui = {}) {
         A?.shield(e[1]);
         break;
       case 'ex':
-        R.explosion(e[1], e[2], e[3]);
-        A?.explode(e[1]);
+        R.explosion(e[1], e[2], e[3], e[4]);
+        A?.explode(e[1], true, e[4]);
+        break;
+      case 'fz': {
+        const p = P(e[1]);
+        if (p) {
+          R.freezeFx(p, t('ft.frozen'));
+          A?.freeze(p.x);
+        }
+        break;
+      }
+      case 'uf': {
+        const p = P(e[1]);
+        if (p) {
+          R.thawFx(p);
+          A?.thaw(p.x);
+        }
+        break;
+      }
+      case 'bk':
+        R.bonk(e[1], e[2], t('ft.bonk'));
+        A?.bonk(e[1]);
+        break;
+      case 'ho':
+        R.holeFx(e[1], e[2]);
+        A?.hole(e[1]);
         break;
       case 'kl': {
         const k = P(e[1]);
@@ -121,7 +151,7 @@ export function playEvents(events, world, R, A, ui = {}) {
         break;
       // Words arrive as keys and are shown/spoken in this screen's language.
       case 'sy':
-        ui.say?.(t(`say.${e[1]}`, e[2]), !!e[3]);
+        ui.say?.(t(`say.${e[1]}`, e[2]), !!e[3], e[1], e[2]);
         break;
       case 'to':
         ui.toast?.(t(`to.${e[1]}`, e[2]), e[3]);
@@ -149,7 +179,11 @@ export function demoHooks(R) {
     impact: (x, y, nx, ny, c, kind) => R.impact(x, y, nx, ny, c, kind),
     hit: (o, amt, x, y, att, w, silent) => R.hit(o, amt, x, y, silent),
     shielded: (o, x, y) => R.shielded(x, y),
-    explode: (x, y, r) => R.explosion(x, y, r),
+    explode: (x, y, r, w) => R.explosion(x, y, r, w),
+    freeze: (p) => R.freezeFx(p),
+    thaw: (p) => R.thawFx(p),
+    bonk: (x, y) => R.bonk(x, y),
+    hole: (b) => R.holeFx(b.x, b.y),
     kill: (k, v) => R.death(v),
     spawn: (p) => R.spawnFx(p),
     pickup: (p, k) => R.pickupFx(k),

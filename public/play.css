@@ -210,6 +210,8 @@ body.phoneview .hint .ring { border-color: rgba(255, 255, 255, 0.35); }
   position: absolute; right: -4px; top: -4px; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 99px;
   background: var(--gold); color: #221400; font-weight: 900; font-size: 15px; display: grid; place-items: center;
 }
+.gren.hole { background: radial-gradient(circle at 40% 35%, #8a4dff, #2a0f52); }
+.gren.hole b { background: #d9b3ff; }
 .gren.press { transform: scale(0.88); }
 .gren.empty { filter: grayscale(1) brightness(0.6); }
 

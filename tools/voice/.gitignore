@@ -1,0 +1,7 @@
+.venv/
+.python/
+.bootstrap/
+.cache/
+takes/
+refs/
+lines.json

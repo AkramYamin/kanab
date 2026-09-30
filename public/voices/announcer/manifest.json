@@ -1,0 +1,58 @@
+{
+  "name": {
+    "en": "Arena announcer",
+    "ar": "معلّق الحلبة"
+  },
+  "ext": "mp3",
+  "made_with": "Chatterbox Multilingual TTS (Resemble AI, MIT), checked with Whisper large-v3-turbo",
+  "clips": {
+    "ar": [
+      "double",
+      "draw",
+      "fight",
+      "firstBlood",
+      "flagDropped_blue",
+      "flagDropped_red",
+      "flagReturned_blue",
+      "flagReturned_red",
+      "flagTaken_blue",
+      "flagTaken_red",
+      "intro_ctf",
+      "intro_ffa",
+      "intro_tdm",
+      "legendary",
+      "onFire",
+      "playerWins",
+      "scores_blue",
+      "scores_red",
+      "teamWins_blue",
+      "teamWins_red",
+      "triple",
+      "unstoppable"
+    ],
+    "en": [
+      "double",
+      "draw",
+      "fight",
+      "firstBlood",
+      "flagDropped_blue",
+      "flagDropped_red",
+      "flagReturned_blue",
+      "flagReturned_red",
+      "flagTaken_blue",
+      "flagTaken_red",
+      "intro_ctf",
+      "intro_ffa",
+      "intro_tdm",
+      "legendary",
+      "onFire",
+      "playerWins",
+      "scores_blue",
+      "scores_red",
+      "teamWins_blue",
+      "teamWins_red",
+      "triple",
+      "unstoppable"
+    ]
+  }
+}

@@ -14,7 +14,7 @@ function newPlayer(pid) {
     pid, name: '', color: '#ffffff', team: 'red', bot: false,
     x: 0, y: 0, sx: 0, sy: 0, ox: 0, oy: 0, vx: 0, vy: 0, t0: 0,
     aim: 0, facing: 1, onGround: false, onPlat: false, jetting: false, alive: false,
-    hp: 100, prot: 0, powerT: 0, burnT: 0, carrying: null, weapon: 'blaster', ammo: Infinity, gren: 0, fuel: 1,
+    hp: 100, prot: 0, powerT: 0, burnT: 0, chill: 0, frozenT: 0, swingT: 0, swingAng: 0, carrying: null, weapon: 'blaster', ammo: Infinity, gren: 0, fuel: 1,
     respawnT: 0, hitFlash: 0, muzzleT: 0, runPhase: 0, w: PHYS.W, h: PHYS.H,
     airT: 0, jumpAge: 9, jumpCd: 0, dropT: 0, fling: false, teleLock: false,
   };
@@ -94,10 +94,11 @@ export class World {
     this.projectiles = s.B.map((b) => {
       const kind = PKINDS[b[1]];
       const wkey = b[2] >= 0 ? WKEYS[b[2]] : 'grenade';
+      const active = b[10] === 1;
       return {
         id: b[0], kind, wkey, sx: b[3], sy: b[4], x: b[3], y: b[4], vx: b[5], vy: b[6], age0: b[7] / 100, age: b[7] / 100,
-        team: TEAMS[b[8]], color: WEAPONS[wkey]?.color || '#ffffff',
-        grav: kind === 'grenade' ? 1500 : kind === 'bounce' ? WEAPONS.bouncer.gravity : 0,
+        team: TEAMS[b[8]], owner: b[9], active, color: WEAPONS[wkey]?.color || '#ffffff',
+        grav: kind === 'grenade' || (kind === 'hole' && !active) ? 1500 : kind === 'bounce' ? WEAPONS.bouncer.gravity : 0,
       };
     });
     if (s.F && this.flags) {
@@ -118,6 +119,7 @@ export class World {
       p.hitFlash = Math.max(0, p.hitFlash - dt * 6);
       p.muzzleT -= dt;
       p.prot = Math.max(0, p.prot - dt);
+      if (p.swingT > 0) p.swingT -= dt;
       if (p.pid === this.localPid || !p.alive) continue;
       p.ox *= decay;
       p.oy *= decay;

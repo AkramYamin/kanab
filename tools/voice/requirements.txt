@@ -1,0 +1,6 @@
+# Voice tool only (not needed to play the game). Installed into tools/voice/.venv
+# by setup.sh. Chatterbox pins its own torch / transformers versions.
+chatterbox-tts==0.1.7
+lameenc==1.8.4
+# Chatterbox's watermarker still imports pkg_resources (dropped from newer setuptools).
+setuptools==80.9.0

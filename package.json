@@ -9,7 +9,10 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "screenshots": "node scripts/screenshots.mjs",
-    "check-maps": "node scripts/check-maps.mjs"
+    "check-maps": "node scripts/check-maps.mjs",
+    "test-weapons": "node scripts/test-weapons.mjs",
+    "voices:setup": "bash tools/voice/setup.sh",
+    "voices": "node scripts/voices.mjs"
   },
   "engines": {
     "node": ">=20"
