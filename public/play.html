@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Commandos">
+  <meta name="theme-color" content="#070a17">
+  <title>Couch Commandos · Controller</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800;900&family=Russo+One&family=Lalezar&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/play.css">
+</head>
+<body data-team="none">
+  <!-- 1. Join -->
+  <section id="join" class="view">
+    <div class="logo"><span data-i18n="logo.small">COUCH</span><b data-i18n="logo.big">COMMANDOS</b></div>
+    <label class="field">
+      <span data-i18n="ph.name"></span>
+      <div class="name-row">
+        <input id="name" maxlength="12" autocomplete="off" autocapitalize="words" spellcheck="false" dir="auto" data-i18n-ph="ph.namePh">
+        <button id="dice" class="dice" aria-label="Random name">🎲</button>
+      </div>
+    </label>
+    <div class="field">
+      <span data-i18n="ph.color"></span>
+      <div class="swatches" id="swatches"></div>
+    </div>
+    <button class="big" id="joinBtn" data-i18n="ph.join"></button>
+    <p class="note" id="joinNote" data-i18n="ph.connecting"></p>
+    <div class="langpick" id="langpick"><button data-lang="en">English</button><button data-lang="ar">العربية</button></div>
+  </section>
+
+  <!-- 2. Lobby -->
+  <section id="wait" class="view hidden">
+    <div class="me" id="me"></div>
+    <div class="viewpick" id="viewpick">
+      <button data-view="tv" class="vp"><span>📺</span><b data-i18n="ph.watchTv"></b></button>
+      <button data-view="phone" class="vp"><span>📱</span><b data-i18n="ph.watchPhone"></b></button>
+    </div>
+    <div class="teampick" id="teampick">
+      <button data-team="red" class="tp red" data-i18n="ph.redTeam"></button>
+      <button data-team="blue" class="tp blue" data-i18n="ph.blueTeam"></button>
+    </div>
+    <div class="capbox hidden" id="capBox">
+      <div class="captitle" data-i18n="ph.captain"></div>
+      <div class="setlist" id="setList"></div>
+      <button class="big" id="startBtn" data-i18n="start"></button>
+    </div>
+    <p class="waitmsg" id="waitMsg"></p>
+    <div class="howto">
+      <div><i class="stick"></i><b data-i18n="ph.left"></b><span data-i18n="ph.leftHow"></span></div>
+      <div><i class="stick aim"></i><b data-i18n="ph.right"></b><span data-i18n="ph.rightHow"></span></div>
+    </div>
+    <div class="foot"><span class="ping" id="ping"></span><button class="link" id="editBtn" data-i18n="ph.edit"></button></div>
+  </section>
+
+  <!-- 3. Controller -->
+  <section id="pad" class="view hidden">
+    <canvas id="view" class="hidden"></canvas>
+    <div class="zone left" id="zoneL">
+      <div class="hint"><i class="ring"></i><span><span data-i18n="ph.move"></span><small data-i18n="ph.moveSub"></small></span></div>
+    </div>
+    <div class="zone right" id="zoneR">
+      <div class="hint"><i class="ring"></i><span><span data-i18n="ph.aim"></span><small data-i18n="ph.aimSub"></small></span></div>
+    </div>
+    <div class="topbar">
+      <div class="hp"><div class="hpbar"><i id="hpFill"></i></div><b id="hpNum">100</b></div>
+      <div class="wpn"><i class="medot"></i><em id="padName"></em><span id="wName"></span><b id="wAmmo">∞</b><button class="viewbtn" id="viewBtn">📱</button></div>
+      <div class="score" id="score"></div>
+    </div>
+    <canvas id="mini" class="hidden"></canvas>
+    <div id="padFeed"></div>
+    <div class="fuel"><i id="fuelFill"></i></div>
+    <button class="gren" id="grenBtn"><span>✹</span><b id="grenNum">2</b></button>
+    <div class="banner hidden" id="padBanner"></div>
+    <div class="dead hidden" id="dead"><div data-i18n="ph.ko"></div><b id="respawnIn">3</b><small data-i18n="ph.back"></small></div>
+  </section>
+
+  <!-- 4. Game over -->
+  <section id="over" class="view hidden">
+    <div class="over-label" data-i18n="gameOver"></div>
+    <h2 id="overTitle"></h2>
+    <div class="over-sub" id="overSub"></div>
+    <div class="over-stats" id="overStats"></div>
+    <div class="capbtns hidden" id="overBtns">
+      <button class="big" id="againBtn" data-i18n="again"></button>
+      <button class="ghost" id="toLobbyBtn" data-i18n="ph.toLobby"></button>
+    </div>
+    <p class="waitmsg" id="overMsg"></p>
+  </section>
+
+  <div id="rotate" class="overlay hidden"><div class="phone-icon"></div><p data-i18n="ph.rotate"></p></div>
+  <div id="offline" class="overlay hidden"><div class="spinner"></div><p id="offlineMsg" data-i18n="ph.connecting"></p></div>
+
+  <script src="/vendor/nipplejs.js"></script>
+  <script type="module" src="/play.js"></script>
+</body>
+</html>

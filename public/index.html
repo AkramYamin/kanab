@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Couch Commandos</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800;900&family=Russo+One&family=Lalezar&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/tv.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <section id="lobby" class="screen">
+    <div class="shade"></div>
+    <header class="brand">
+      <div class="logo"><span class="l1" data-i18n="logo.small">COUCH</span><span class="l2" data-i18n="logo.big">COMMANDOS</span></div>
+      <p class="tagline" data-i18n="tagline"></p>
+    </header>
+
+    <div class="lobby-main">
+      <div class="card join-card">
+        <div class="qr" id="qr"></div>
+        <ol class="steps">
+          <li><b>1</b><span data-i18n="step.1"></span></li>
+          <li><b>2</b><span data-i18n="step.2"></span></li>
+          <li><b>3</b><span data-i18n="step.3"></span></li>
+        </ol>
+        <div class="url" id="joinUrl">…</div>
+      </div>
+      <div class="teams" id="teams"></div>
+    </div>
+
+    <div class="lobby-bottom">
+      <div class="settings" id="settings"></div>
+      <div class="start-row">
+        <div class="captain" id="captain"></div>
+        <button class="start" id="startBtn"><span data-i18n="start"></span> <kbd>Enter</kbd></button>
+      </div>
+    </div>
+
+    <div class="corner">
+      <button id="langBtn" title="Language (L)">ع</button>
+      <button id="musicBtn" title="Music (M)">♫</button>
+      <button id="fsBtn" title="Fullscreen (F)">⛶</button>
+    </div>
+    <div class="sound-hint" id="soundHint" data-i18n="soundHint"></div>
+  </section>
+
+  <section id="hud" class="screen hidden">
+    <div class="scorebar" id="scorebar">
+      <div class="side red"><span class="flagico home" id="flagRed"></span><span class="num" id="scRed">0</span></div>
+      <div class="mid"><div class="timer" id="timer">10:00</div><div class="goal" id="goal"></div></div>
+      <div class="side blue"><span class="num" id="scBlue">0</span><span class="flagico home" id="flagBlue"></span></div>
+    </div>
+    <div class="ffa-board hidden" id="ffaBoard"></div>
+    <div id="feed"></div>
+    <div class="minijoin"><div id="qrSmall"></div><span data-i18n-html="scanToJoin"></span></div>
+  </section>
+
+  <section id="results" class="screen hidden">
+    <div class="results-card">
+      <div class="win-label" data-i18n="gameOver"></div>
+      <h1 id="winTitle"></h1>
+      <div class="final-score" id="finalScore"></div>
+      <table id="table"></table>
+      <div class="res-actions">
+        <button id="againBtn" class="start"><span data-i18n="again"></span> <kbd>Enter</kbd></button>
+        <button id="lobbyBtn" class="ghost"><span data-i18n="lobbyBtn"></span> <kbd>Esc</kbd></button>
+      </div>
+      <div class="auto" id="autoBack"></div>
+    </div>
+  </section>
+
+  <div id="banner"></div>
+  <div id="toasts"></div>
+  <div id="netStatus" class="net-status"></div>
+  <div class="keys-help" data-i18n="keysHelp"></div>
+
+  <script type="module" src="/js/tv.js"></script>
+</body>
+</html>

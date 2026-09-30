@@ -1,0 +1,10 @@
+{
+  "name": "Couch Commandos Controller",
+  "short_name": "Commandos",
+  "start_url": "/play",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#070a17",
+  "theme_color": "#070a17",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
