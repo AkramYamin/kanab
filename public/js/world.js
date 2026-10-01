@@ -29,7 +29,7 @@ export class World {
     this.unit = match.unit;
     this.players = new Map();
     this.projectiles = [];
-    this.pickups = map.pickups.map((k) => ({ ...k, t: 0 }));
+    this.pickups = []; // arrive with the first snapshot (some weapons may be switched off)
     this.flags = match.mode === 'ctf' ? { red: this.flag('red'), blue: this.flag('blue') } : null;
     this.score = { red: 0, blue: 0 };
     this.phase = 'countdown';

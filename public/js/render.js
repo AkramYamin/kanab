@@ -68,6 +68,8 @@ const PICKUP_COLOR = { health: '#5dff8a', grenades: '#b8f060', power: '#ffcc33',
 const ICE = '#bfeaff';
 const HOLE_SWIRL = ['#d9b3ff', '#b36bff', '#ff7ae0', '#b36bff'];
 const PAD_COLOR = '#7dffb0';
+// Props drawn behind the walls and platforms (big scenery); the rest go in front.
+const BACK_PROPS = { column: 1, canopy: 1, hut: 1 };
 
 // ------------------------------------------------------------- particles
 
@@ -250,11 +252,17 @@ function paintLayer(map, L) {
   }
   if (L.trees) {
     const tr = seeded(L.seed * 31);
-    for (let x = x0; x < x1; x += 60 + tr() * 110) {
+    for (let x = x0; x < x1; x += (L.pines ? 34 : 60) + tr() * (L.pines ? 60 : 110)) {
       const y = baseY - L.amp * (0.25 + tr() * 0.3);
       const s = 30 + tr() * 40;
       g.beginPath();
-      g.arc(x, y - s, s * 0.7, 0, TAU);
+      if (L.pines) {
+        g.moveTo(x - s * 0.5, y + 20);
+        g.lineTo(x, y - s * 1.9);
+        g.lineTo(x + s * 0.5, y + 20);
+      } else {
+        g.arc(x, y - s, s * 0.7, 0, TAU);
+      }
       g.fill();
       g.fillRect(x - 4, y - s, 8, s + 40);
     }
@@ -302,6 +310,27 @@ function makeTile(style) {
     for (let i = 0; i < 5; i++) {
       g.beginPath();
       g.ellipse(rnd() * 128, rnd() * 64, 4 + rnd() * 8, 2 + rnd() * 3, 0, 0, TAU);
+      g.fill();
+    }
+    return c;
+  }
+  if (style === 'bark') {
+    // Wavy vertical grain plus a few knots; repeats seamlessly every 256.
+    c.width = 128;
+    c.height = 256;
+    const g = c.getContext('2d');
+    g.strokeStyle = 'rgba(0,0,0,0.2)';
+    g.lineWidth = 3;
+    for (let x = 6; x < 124; x += 14 + rnd() * 10) {
+      const ph = rnd() * TAU;
+      g.beginPath();
+      for (let y = 0; y <= 256; y += 8) g.lineTo(x + Math.sin((y / 256) * TAU * 2 + ph) * 3, y);
+      g.stroke();
+    }
+    g.fillStyle = 'rgba(0,0,0,0.25)';
+    for (let i = 0; i < 3; i++) {
+      g.beginPath();
+      g.ellipse(16 + rnd() * 96, 30 + rnd() * 196, 5, 9, 0, 0, TAU);
       g.fill();
     }
     return c;
@@ -511,6 +540,44 @@ export function drawWeapon(ctx, key, t) {
       ctx.fill();
       break;
   }
+}
+
+function holeCore(ctx, x, y, s, t) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+  ctx.fillStyle = '#07030f';
+  ctx.beginPath();
+  ctx.arc(0, 0, 18, 0, TAU);
+  ctx.fill();
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 3; i++) {
+    const a = t * 4 + (i * TAU) / 3;
+    ctx.strokeStyle = i ? '#b36bff' : '#ff7ae0';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, a, a + 1.4);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// A weapon (or the black hole pickup) centered in a w×h canvas, for menus.
+export function drawWeaponIcon(canvas, key) {
+  const ctx = canvas.getContext('2d');
+  const { width: w, height: h } = canvas;
+  ctx.clearRect(0, 0, w, h);
+  if (key === 'hole') {
+    holeCore(ctx, w / 2, h / 2, h / 60, 0.3);
+    return;
+  }
+  const len = WEAPONS[key]?.len || 40;
+  const s = Math.min((w * 0.8) / (len + 16), h / 36);
+  ctx.save();
+  ctx.translate(w / 2 - (len / 2) * s, h / 2);
+  ctx.scale(s, s);
+  drawWeapon(ctx, key, 0);
+  ctx.restore();
 }
 
 function drawFlagCloth(ctx, x, top, color, t, dir, sc = 1) {
@@ -943,7 +1010,11 @@ export class Renderer {
 
     ctx.fillStyle = th.back;
     for (const b of map.backs) if (vis(b.x, b.y, b.w, b.h)) ctx.fillRect(b.x, b.y, b.w, b.h);
-    for (const pr of map.props) if (pr.kind === 'column' && vis(pr.x - 40, pr.y - pr.arg, 80, pr.arg)) this.drawProp(ctx, pr, t);
+    for (const pr of map.props) {
+      if (!BACK_PROPS[pr.kind]) continue;
+      const r = pr.kind === 'column' ? 40 : pr.arg;
+      if (vis(pr.x - r, pr.y - (pr.kind === 'canopy' ? r : pr.arg), r * 2, pr.arg * 2)) this.drawProp(ctx, pr, t);
+    }
 
     for (const s of map.solids) {
       if (!vis(s.x, s.y, s.w, s.h)) continue;
@@ -1020,13 +1091,17 @@ export class Renderer {
       ctx.fillStyle = pc.top;
       rr(ctx, p.x + 2, p.y - 1, p.w - 4, 4, 2);
       ctx.fill();
+      if (pc.planks) {
+        ctx.fillStyle = pc.edge;
+        for (let x = p.x + 34; x < p.x + p.w - 10; x += 34) ctx.fillRect(x, p.y + 3, 2, 11);
+      }
       if (th.solid.topStyle === 'snow') {
         ctx.fillStyle = '#ffffff';
         rr(ctx, p.x - 1, p.y - 5, p.w + 2, 7, 3);
         ctx.fill();
       }
     }
-    for (const pr of map.props) if (pr.kind !== 'column' && vis(pr.x - 60, pr.y - 170, 120, 180)) this.drawProp(ctx, pr, t);
+    for (const pr of map.props) if (!BACK_PROPS[pr.kind] && vis(pr.x - 60, pr.y - 170, 120, 180)) this.drawProp(ctx, pr, t);
   }
 
   drawProp(ctx, pr, t) {
@@ -1124,11 +1199,79 @@ export class Renderer {
         }
         ctx.fillStyle = '#5a4030';
         ctx.fillRect(x - 5, y - 30, 10, 30);
+        if (th.solid.topStyle !== 'snow') break;
         ctx.fillStyle = 'rgba(255,255,255,0.85)';
         ctx.beginPath();
         ctx.moveTo(x - 12, y - 148);
         ctx.lineTo(x, y - 164);
         ctx.lineTo(x + 12, y - 148);
+        ctx.fill();
+        break;
+      case 'canopy': {
+        // A treetop: overlapping leafy blobs, darker at the bottom.
+        const r = pr.arg;
+        const rnd = seeded(Math.round(x * 7 + y));
+        const blobs = [];
+        for (let i = 0; i < 9; i++) {
+          const a = (i / 9) * TAU + rnd() * 0.5;
+          blobs.push([x + Math.cos(a) * r * 0.55, y + Math.sin(a) * r * 0.38, r * (0.42 + rnd() * 0.18)]);
+        }
+        blobs.push([x, y, r * 0.6]);
+        for (const [col, dy, k] of [['#1f3d2a', 14, 1], ['#2d5a3a', 0, 0.94], ['#3b7046', -12, 0.7]]) {
+          ctx.fillStyle = col;
+          ctx.beginPath();
+          for (const [bx, by, br] of blobs) {
+            ctx.moveTo(bx + br * k, by + dy);
+            ctx.arc(bx, by + dy - (1 - k) * br * 0.4, br * k, 0, TAU);
+          }
+          ctx.fill();
+        }
+        break;
+      }
+      case 'hut': {
+        // Treehouse walls behind the floor: planks, a window and a door.
+        const w = pr.arg;
+        const h = 180;
+        const left = x - w / 2;
+        ctx.fillStyle = '#5e3f26';
+        ctx.fillRect(left, y - h, w, h);
+        ctx.fillStyle = 'rgba(0,0,0,0.22)';
+        for (let yy = y - h + 24; yy < y; yy += 24) ctx.fillRect(left, yy, w, 2);
+        ctx.fillStyle = '#2a1a0f';
+        rr(ctx, left + w * 0.18, y - 110, 54, 44, 6);
+        ctx.fill();
+        rr(ctx, left + w * 0.62, y - 92, 46, 92, [12, 12, 0, 0]);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,214,140,0.35)';
+        rr(ctx, left + w * 0.18 + 5, y - 105, 44, 34, 4);
+        ctx.fill();
+        break;
+      }
+      case 'mushroom':
+        ctx.fillStyle = '#efe4cf';
+        rr(ctx, x - 7, y - 30, 14, 30, 5);
+        ctx.fill();
+        ctx.fillStyle = '#e2453e';
+        ctx.beginPath();
+        ctx.ellipse(x, y - 30, 26, 18, 0, Math.PI, TAU);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        for (const [dx, dy, r] of [[-12, -36, 4], [5, -42, 5], [15, -34, 3]]) {
+          ctx.beginPath();
+          ctx.arc(x + dx, y + dy, r, 0, TAU);
+          ctx.fill();
+        }
+        break;
+      case 'bush':
+        ctx.fillStyle = '#2f6a3a';
+        for (const [dx, dy, r] of [[-26, -18, 22], [0, -28, 28], [26, -18, 22]]) {
+          ctx.beginPath();
+          ctx.arc(x + dx, y + dy, r, 0, TAU);
+          ctx.fill();
+        }
+        ctx.fillStyle = '#4b8f4f';
+        ctx.beginPath();
+        ctx.arc(x - 6, y - 36, 12, 0, TAU);
         ctx.fill();
         break;
       case 'palm':
@@ -1781,23 +1924,7 @@ export class Renderer {
   }
 
   drawHoleCore(ctx, x, y, s, t) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(s, s);
-    ctx.fillStyle = '#07030f';
-    ctx.beginPath();
-    ctx.arc(0, 0, 18, 0, TAU);
-    ctx.fill();
-    ctx.lineCap = 'round';
-    for (let i = 0; i < 3; i++) {
-      const a = t * 4 + (i * TAU) / 3;
-      ctx.strokeStyle = i ? '#b36bff' : '#ff7ae0';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(0, 0, 22, a, a + 1.4);
-      ctx.stroke();
-    }
-    ctx.restore();
+    holeCore(ctx, x, y, s, t);
   }
 
   drawHole(ctx, b, t) {

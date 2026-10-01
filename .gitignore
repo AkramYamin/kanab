@@ -6,3 +6,6 @@ node_modules/
 # Voice packs you make yourself (family voices) stay on this computer.
 public/voices/*
 !public/voices/announcer/
+
+# Family touches (kids' names, photos, voices) stay on this computer.
+public/family/

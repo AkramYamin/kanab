@@ -187,7 +187,18 @@ try {
     await tv.shot('tv-lobby.jpg');
     await phones[0].shot('phone-lobby.jpg');
 
-    const maps = ['canyon', 'district', 'glacier', 'temple'];
+    // The weapons panel, with a couple of weapons switched off.
+    await tv.eval(`document.querySelector('.pill[data-key="weapons"]').click(); cc.send({ t: 'weapon', key: 'bees' }); cc.send({ t: 'weapon', key: 'hole' }); true`);
+    await sleep(600);
+    await tv.shot('tv-weapons-panel.jpg');
+    await phones[0].eval(`document.querySelector('#setList [data-key="weapons"]').click(); true`);
+    await sleep(400);
+    await phones[0].shot('phone-weapons.jpg');
+    await tv.eval(`cc.send({ t: 'weapon', key: 'all' }); document.querySelector('#wDone').click(); true`);
+    await phones[0].eval(`document.querySelector('#wDoneBtn').click(); true`);
+    await sleep(400);
+
+    const maps = ['canyon', 'district', 'glacier', 'temple', 'forest'];
     for (const [i, map] of maps.entries()) {
       if (i > 0) {
         await tv.eval(`cc.send({ t: 'lobby' }); true`);

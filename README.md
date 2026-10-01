@@ -17,7 +17,8 @@ Two ways to watch, and you can mix them in the same match:
 | ![Canyon Run](docs/screenshots/tv-canyon.jpg) | ![Phone view](docs/screenshots/phone-view-canyon.jpg) |
 | ![Neon District](docs/screenshots/tv-district.jpg) | ![Phone view](docs/screenshots/phone-view-district.jpg) |
 | ![Glacier Keep](docs/screenshots/tv-glacier.jpg) | ![Phone view](docs/screenshots/phone-view-glacier.jpg) |
-| ![Jungle Temple](docs/screenshots/tv-temple.jpg) | ![Phone lobby](docs/screenshots/phone-lobby.jpg) |
+| ![Jungle Temple](docs/screenshots/tv-temple.jpg) | ![Phone view](docs/screenshots/phone-view-temple.jpg) |
+| ![Treehouse Forest](docs/screenshots/tv-forest.jpg) | ![Phone view](docs/screenshots/phone-view-forest.jpg) |
 
 ## Quick start
 
@@ -52,6 +53,37 @@ The game speaks **English** and **Arabic (العربية)**: the TV, the phones 
 
 ![Freeze Ray and Big Hammer in Arabic: تجمّد! and طاخ!](docs/screenshots/ar/tv-weapons.jpg)
 
+## Family touches: team names and a picture (they stay on your computer)
+
+Name the two teams after your kids and put a picture of them in the game. Everything goes in the folder `public/family/`, which is in `.gitignore`, so names, photos and voices never go to GitHub. Delete the folder to go back to Red and Blue.
+
+**1. Team names.** Copy the example and edit it:
+
+```bash
+mkdir -p public/family
+cp docs/family.example.json public/family/family.json
+```
+
+```json
+{
+  "teams": {
+    "red": { "en": "Sara", "ar": "سارة" },
+    "blue": { "en": "Omar", "ar": "عمر" }
+  },
+  "background": "background.jpg"
+}
+```
+
+`red` is the team on the left, `blue` the one on the right. Give each name in English (`en`) and Arabic (`ar`). The game then says *Team Sara* / «فريق سارة» everywhere: the lobby, the scoreboard, the banners, the results and the phones.
+
+**2. The picture.** Save a wide 16:9 picture (for example 1920×1080) as `public/family/background.jpg`, with the red team's kid on the **left** and the blue team's on the **right**, faces in the upper half. It fills the lobby (the team lists move to the middle and the QR code to a corner so both faces stay visible) and shows with "Team Sara VS Team Omar" while each match counts down. To use another file name or a `.png` / `.webp`, change `"background"` in `family.json`.
+
+To make the picture, an AI image tool (for example GPT Image in ChatGPT) works well. Upload a photo of each kid, the red team's kid first, and use a prompt like: *"Wide 16:9 video game splash art. Use the two photos only as likeness references: image 1 on the left in glossy red sci-fi commando armor with a jetpack and a big toy hammer, image 2 on the right in blue armor with a freeze-ray blaster, facing each other with playful grins. Friendly 3D cartoon style. Red sparks behind the left kid, blue frost behind the right one, colliding in a golden burst in the middle. Keep the center and the bottom fifth calm for the game's text. No text, logos or watermarks."*
+
+**3. Refresh** the TV page (and reload the phones). The server reads `family.json` and the picture every time, so there's no need to restart it.
+
+**4. Optional: the announcer says the names.** With the [voice tool](#announcer-voices-ai) set up, `npm run voices -- --teams` records the 10 team lines in each language («فريق سارة يسجّل!», "Team Sara scores!"), about 15 minutes. Run it again after changing the names. Until then the computer's voice says those lines, so the announcer never calls the teams "Red" and "Blue" by mistake.
+
 ## Controls
 
 **Phone (hold it sideways):**
@@ -72,19 +104,24 @@ Each stick appears wherever your thumb lands and follows it if you slide too far
 
 - **Capture the Flag**: grab the enemy flag and bring it to your base while your own flag is home.
 - **Team Deathmatch** and **Free for All**.
-- **4 big maps**: Canyon Run, Neon District, Glacier Keep, Jungle Temple. Each has tunnels, towers and several routes between the bases, plus:
+- **5 big maps**: Canyon Run, Neon District, Glacier Keep, Jungle Temple and Treehouse Forest. Each has tunnels, towers and several routes between the bases, plus:
   - **Jump pads** (green arrows) that fling you up to the high routes.
   - **Teleporters** (glowing portals, in pairs of the same color). Walk in and you come out of its twin. Step out and back in to return.
 - **10 weapons** plus grenades: Blaster, Shotgun, Minigun, Railgun, Rockets, Flamer, Bouncer, Freeze Ray, Bee Swarm and Big Hammer. Pickups for health, grenades, black holes and a double damage star.
   - *Rockets* speed up as they fly and explode on the first wall or player they hit. The blast hurts enemies nearby and throws everyone around. Shoot at your feet to rocket-jump; your own rockets never hurt you.
   - *Freeze Ray* sprays ice. Keep it on someone for about a second and they freeze in an ice block for 1.6 s: they can't move, jump or shoot, and they slide around. Right after thawing nobody can freeze them again for a moment.
-  - *Bee Swarm* shoots 3 bees that fly to the nearest enemy they can see, so aiming hardly matters. Great for the youngest players.
+  - *Bee Swarm* shoots 3 bees that fly to the nearest enemy they can see, so aiming hardly matters. Great for the youngest players. It's the strongest weapon, so every map has just one, at the very top in the middle, and it takes 25 s to come back.
   - *Big Hammer* is a toy hammer: every swing leaps you forward and launches whoever it hits across the map (BONK!). It shatters frozen enemies for extra damage.
   - *Black holes* (purple swirl pickup) replace your next 2 grenades. Thrown like a grenade, it floats up and pulls enemies in for 2 seconds, then pops. Teammates are safe.
+- **Choose the weapons**: the lobby's **Weapons** button opens a panel where you tap weapons on or off (the blaster always stays). Spots of a switched-off weapon get another weapon, the same on both sides, so you can play a hammers-only match, or one without rockets.
 - **Bots** (easy / normal / hard) fill the teams when you're short on players.
 - An announcer voice, live-generated sound effects in stereo, music, and phone vibration (Android) when you get hit or frozen.
 
 ![Freeze Ray, Big Hammer, Bee Swarm and a black hole](docs/screenshots/tv-weapons.jpg)
+
+| Weapons on the TV | …and on the captain's phone |
+| --- | --- |
+| ![Weapons panel](docs/screenshots/tv-weapons-panel.jpg) | ![Weapons on the phone](docs/screenshots/phone-weapons.jpg) |
 
 ## How it works
 

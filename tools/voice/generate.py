@@ -149,12 +149,20 @@ def reference(arg, lang):
 # --------------------------------------------------------------------- main
 
 
+def pack_dirs(args):
+    """Where the clips go, and where all the takes are kept for listening."""
+    if args.out:
+        return Path(args.out).resolve(), HERE / "takes" / f"family-{args.pack}"
+    return ROOT / "public" / "voices" / args.pack, HERE / "takes" / args.pack
+
+
 def pick_takes(args):
     """Swap in takes chosen by ear (no AI needed)."""
     lang = args.lang.split(",")[0]
-    takes_dir = HERE / "takes" / args.pack / lang
-    out_dir = ROOT / "public" / "voices" / args.pack / lang
-    report_path = HERE / "takes" / args.pack / "report.json"
+    out_root, takes_root = pack_dirs(args)
+    takes_dir = takes_root / lang
+    out_dir = out_root / lang
+    report_path = takes_root / "report.json"
     report = json.loads(report_path.read_text()) if report_path.exists() else []
     for item in args.pick.split(","):
         clip, n = item.split("=")
@@ -176,6 +184,7 @@ def main():
     ap.add_argument("--only", help="comma-separated clip names to (re)make, e.g. fight,scores_red")
     ap.add_argument("--takes", type=int, default=3, help="takes per line; Whisper keeps the best (default 3)")
     ap.add_argument("--pick", help="keep other takes instead, e.g. fight=2,draw=1 (listen in tools/voice/takes/)")
+    ap.add_argument("--out", help="folder for the pack (default public/voices/<pack>); used by --teams")
     args = ap.parse_args()
     if args.pick:
         return pick_takes(args)
@@ -183,8 +192,7 @@ def main():
     lines = json.loads((HERE / "lines.json").read_text())
     langs = [x.strip() for x in args.lang.split(",") if x.strip()]
     only = set(args.only.split(",")) if args.only else None
-    out_dir = ROOT / "public" / "voices" / args.pack
-    takes_dir = HERE / "takes" / args.pack
+    out_dir, takes_dir = pack_dirs(args)
 
     from chatterbox.mtl_tts import ChatterboxMultilingualTTS
     from transformers import pipeline

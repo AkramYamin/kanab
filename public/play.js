@@ -11,12 +11,12 @@
 import { mapById } from './js/maps.js';
 import { Game, PHYS, STEP, TEAM_COLOR } from './js/game.js';
 import { World } from './js/world.js';
-import { Renderer } from './js/render.js';
+import { Renderer, drawWeaponIcon } from './js/render.js';
 import { Camera, updateFollowCamera } from './js/camera.js';
 import { playEvents } from './js/events.js';
 import { audio } from './js/audio.js';
 import { clamp } from './js/util.js';
-import { t, setLang, getLang, applyStatic, settingText, FUN_NAMES } from './js/i18n.js';
+import { t, setLang, getLang, applyStatic, settingText, setTeamNames, FUN_NAMES } from './js/i18n.js';
 
 const $ = (s) => document.querySelector(s);
 const COLORS = ['#ffcc4d', '#5dff8a', '#ff7ae0', '#7df9ff', '#ff9f43', '#b28dff', '#ffffff', '#a3ff5c', '#ff6b6b', '#4dd4ff'];
@@ -93,6 +93,8 @@ function onMessage(m) {
       break;
     case 'lobby':
       lobby = m;
+      // Team names after the kids (public/family): redo the words that use them.
+      if (setTeamNames(m.family?.teams)) langApplied = false;
       applyLang();
       applyLobby();
       break;
@@ -257,9 +259,41 @@ $('#viewpick').addEventListener('click', (e) => {
 $('#setList').addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b) return;
-  send({ t: 'set', key: b.dataset.key });
+  if (b.dataset.key === 'weapons') showWeaponSheet(true);
+  else send({ t: 'set', key: b.dataset.key });
   buzz(10);
 });
+
+// Captain's weapons sheet: tap a weapon to switch it on or off.
+let weaponSheet = false;
+function showWeaponSheet(on) {
+  weaponSheet = on;
+  $('#setList').classList.toggle('hidden', on);
+  $('#wSheet').classList.toggle('hidden', !on);
+  $('#startBtn').hidden = on;
+  $('#wDoneBtn').hidden = !on;
+  if (on) renderWeaponSheet();
+}
+function renderWeaponSheet() {
+  const grid = $('#wGrid');
+  if (!lobby?.weapons) return;
+  if (grid.dataset.lang !== getLang()) {
+    grid.dataset.lang = getLang();
+    grid.innerHTML = lobby.weapons
+      .map((w) => `<button class="wbtn" data-key="${w.key}"><span class="tag">${esc(t('wp.off'))}</span><canvas width="220" height="110"></canvas><b>${esc(t(`w.${w.key}`))}</b></button>`)
+      .join('');
+    for (const b of grid.children) drawWeaponIcon(b.querySelector('canvas'), b.dataset.key);
+  }
+  for (const w of lobby.weapons) grid.querySelector(`[data-key="${w.key}"]`)?.classList.toggle('off', !w.on);
+}
+$('#wGrid').addEventListener('click', (e) => {
+  const b = e.target.closest('.wbtn');
+  if (!b) return;
+  send({ t: 'weapon', key: b.dataset.key });
+  buzz(10);
+});
+$('#wAllBtn').addEventListener('click', () => send({ t: 'weapon', key: 'all' }));
+$('#wDoneBtn').addEventListener('click', () => showWeaponSheet(false));
 $('#startBtn').addEventListener('click', () => {
   send({ t: 'start' });
   buzz(40);
@@ -292,6 +326,8 @@ function applyLobby() {
   paintViewPick();
 
   $('#capBox').classList.toggle('hidden', !isCap);
+  if (!isCap && weaponSheet) showWeaponSheet(false);
+  if (weaponSheet) renderWeaponSheet();
   if (isCap) {
     $('#setList').innerHTML = lobby.settings
       .map((s) => `<button data-key="${s.key}"><span>${esc(t(`set.${s.key}`))}</span><b>${esc(settingText(s))}</b></button>`)

@@ -35,6 +35,8 @@ class Sound {
     this.pack = 'system';
     this.clips = new Map(); // clip name -> AudioBuffer (or ArrayBuffer until decoded)
     this.packToken = 0;
+    this.familyClips = new Set(); // clips from public/family that say the kids' team names
+    this.customTeams = false;
     this.voiceEnd = 0;
     this.voiceSrc = null;
   }
@@ -559,20 +561,29 @@ class Sound {
   // ------------------------------------------------------------ voice packs
 
   // Load the clips of one pack for one language ('system' = speech voices only).
-  async setPack(pack, lang) {
-    if (pack === this.pack && lang === this.packLang) return;
+  // `family`: also load public/family/voices/<pack>, lines that say the team names.
+  async setPack(pack, lang, family = false) {
+    const key = `${pack}/${lang}/${family}`;
+    if (key === this.packKey) return;
+    this.packKey = key;
     this.pack = pack;
     this.packLang = lang;
     const token = ++this.packToken;
     this.clips = new Map();
+    this.familyClips = new Set();
     if (!pack || pack === 'system') return;
-    try {
-      const m = await (await fetch(`/voices/${pack}/manifest.json`)).json();
-      const names = m.clips?.[lang] || [];
-      await Promise.all(names.map(async (name) => {
-        const r = await fetch(`/voices/${pack}/${lang}/${name}.${m.ext || 'mp3'}`);
-        if (r.ok && token === this.packToken) this.clips.set(name, await r.arrayBuffer());
+    const load = async (base, into) => {
+      const m = await (await fetch(`${base}/manifest.json`)).json();
+      await Promise.all((m.clips?.[lang] || []).map(async (name) => {
+        const r = await fetch(`${base}/${lang}/${name}.${m.ext || 'mp3'}`);
+        if (!r.ok || token !== this.packToken) return;
+        this.clips.set(name, await r.arrayBuffer());
+        into?.add(name);
       }));
+    };
+    try {
+      await load(`/voices/${pack}`);
+      if (family) await load(`/family/voices/${pack}`, this.familyClips);
     } catch {
       /* no pack: the speech voice takes over */
     }
@@ -599,7 +610,10 @@ class Sound {
   // Say an announcer line: the recorded clip if the pack has it, else speech.
   announce(key, params, text, urgent = false) {
     if (!this.voiceOn || this.muted) return;
-    const buf = this.clips.get(clipName(key, params));
+    const name = clipName(key, params);
+    // Teams named after the kids: a stock clip would say "Red team".
+    const stale = this.customTeams && /_(red|blue)$/.test(name) && !this.familyClips.has(name);
+    const buf = stale ? null : this.clips.get(name);
     if (!(buf instanceof AudioBuffer) || !this.ready) {
       this.say(text, urgent);
       return;

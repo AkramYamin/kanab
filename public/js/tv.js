@@ -6,13 +6,13 @@ import { mapById } from './maps.js';
 import { Game, PHYS, STEP, TEAM_COLOR } from './game.js';
 import { makeBot, BOT_NAMES, BOT_NAMES_AR } from './bots.js';
 import { WEAPON_ICON } from './weapons.js';
-import { Renderer } from './render.js';
+import { Renderer, drawWeaponIcon } from './render.js';
 import { World } from './world.js';
 import { Camera, updateTVCamera } from './camera.js';
 import { playEvents, demoHooks } from './events.js';
 import { audio } from './audio.js';
 import { escapeHtml } from './util.js';
-import { t, setLang, getLang, applyStatic, settingText } from './i18n.js';
+import { t, setLang, getLang, applyStatic, settingText, setTeamNames, hasTeamNames } from './i18n.js';
 
 const $ = (s) => document.querySelector(s);
 const KB_PID = 900;
@@ -60,7 +60,9 @@ function onMessage(m) {
     case 'lobby': {
       lobby = m;
       const changed = setLang(m.lang);
-      audio.setPack(m.voice, getLang());
+      setTeamNames(m.family?.teams);
+      applyFamily(m.family);
+      audio.setPack(m.voice, getLang(), m.family?.voices?.includes(m.voice));
       if (changed || !langReady) applyLanguage(changed);
       renderLobby();
       setScreen(m.screen);
@@ -73,7 +75,12 @@ function onMessage(m) {
       world?.setRoster(m.players);
       break;
     case 'snap':
-      if (world) playEvents(world.apply(m, performance.now()), world, renderer, audio, ui);
+      if (!world) break;
+      playEvents(world.apply(m, performance.now()), world, renderer, audio, ui);
+      if (vsPending) {
+        if (world.phase === 'countdown') showVs(vsPending);
+        vsPending = null;
+      }
       break;
     case 'results':
       showResults(m);
@@ -86,6 +93,34 @@ function onMessage(m) {
       toast(t(m.key), m.color);
       break;
   }
+}
+
+// Family touches: team names on the scoreboard and the picture behind the lobby.
+function applyFamily(f) {
+  document.body.classList.toggle('family-bg', !!f?.bg);
+  if (f?.bg) document.body.style.setProperty('--family-bg', `url("${f.bg}")`);
+  else document.body.style.removeProperty('--family-bg');
+  audio.customTeams = hasTeamNames();
+  $('#tnRed').textContent = hasTeamNames() ? t('redTeam') : '';
+  $('#tnBlue').textContent = hasTeamNames() ? t('blueTeam') : '';
+}
+
+// "Team Sara VS Team Omar" over the family picture while the match counts down.
+let vsTimer = null;
+function showVs(m) {
+  const el = $('#vs');
+  clearTimeout(vsTimer);
+  if (!hasTeamNames() || m.mode === 'ffa') {
+    el.classList.add('hidden');
+    return;
+  }
+  $('#vsRed').textContent = t('redTeam');
+  $('#vsBlue').textContent = t('blueTeam');
+  el.className = '';
+  vsTimer = setTimeout(() => {
+    el.classList.add('out');
+    vsTimer = setTimeout(() => el.classList.add('hidden'), 500);
+  }, 2400);
 }
 
 // Language comes from the lobby setting and applies to every screen.
@@ -108,6 +143,8 @@ function setScreen(s) {
   if (s === screen && (s !== 'lobby' || demo)) return;
   screen = s;
   $('#lobby').classList.toggle('hidden', s !== 'lobby');
+  if (s !== 'lobby') showWeapons(false);
+  else $('#vs').classList.add('hidden');
   $('#hud').classList.toggle('hidden', s === 'lobby');
   $('#results').classList.toggle('hidden', s !== 'results');
   if (s === 'lobby') {
@@ -169,20 +206,53 @@ function renderLobby() {
       ? t('pressEnter')
       : t('waitingPlayers');
   $('#startBtn').disabled = !L.canStart;
+  renderWeapons();
   if (screen === 'lobby') startDemo();
 }
+
+// Weapons panel: a picture of every weapon, click to switch it on or off.
+function renderWeapons() {
+  const grid = $('#wgrid');
+  if (!lobby?.weapons) return;
+  if (grid.dataset.lang !== getLang()) {
+    grid.dataset.lang = getLang();
+    grid.innerHTML = lobby.weapons
+      .map((w) => `<button class="wbtn" data-key="${w.key}"><span class="tag">${t('wp.off')}</span><canvas width="180" height="90"></canvas><b>${t(`w.${w.key}`)}</b></button>`)
+      .join('');
+    for (const b of grid.children) drawWeaponIcon(b.querySelector('canvas'), b.dataset.key);
+  }
+  for (const w of lobby.weapons) grid.querySelector(`[data-key="${w.key}"]`)?.classList.toggle('off', !w.on);
+}
+
+const weaponsOpen = () => !$('#wpanel').classList.contains('hidden');
+function showWeapons(on) {
+  $('#wpanel').classList.toggle('hidden', !on);
+  if (on) renderWeapons();
+}
+$('#wgrid').addEventListener('click', (e) => {
+  const b = e.target.closest('.wbtn');
+  if (!b) return;
+  audio.ui();
+  send({ t: 'weapon', key: b.dataset.key });
+});
+$('#wAll').addEventListener('click', () => send({ t: 'weapon', key: 'all' }));
+$('#wDone').addEventListener('click', () => showWeapons(false));
+$('#wpanel').addEventListener('click', (e) => {
+  if (e.target.id === 'wpanel') showWeapons(false);
+});
 
 $('#settings').addEventListener('click', (e) => {
   const b = e.target.closest('.pill');
   if (!b) return;
   audio.ui();
-  send({ t: 'set', key: b.dataset.key, dir: 1 });
+  if (b.dataset.key === 'weapons') showWeapons(true);
+  else send({ t: 'set', key: b.dataset.key, dir: 1 });
 });
 $('#settings').addEventListener('contextmenu', (e) => {
   const b = e.target.closest('.pill');
   if (!b) return;
   e.preventDefault();
-  send({ t: 'set', key: b.dataset.key, dir: -1 });
+  if (b.dataset.key !== 'weapons') send({ t: 'set', key: b.dataset.key, dir: -1 });
 });
 $('#startBtn').addEventListener('click', () => send({ t: 'start' }));
 $('#againBtn').addEventListener('click', () => send({ t: 'start' }));
@@ -215,7 +285,9 @@ function startWorld(m) {
   $('#scorebar').classList.toggle('noflags', m.mode !== 'ctf');
   $('#ffaBoard').classList.toggle('hidden', m.mode !== 'ffa');
   $('#results').classList.add('hidden');
+  vsPending = m; // shown if the first snapshot says we are still counting down
 }
+let vsPending = null;
 
 const ui = {
   tick: (n) => {
@@ -378,7 +450,8 @@ addEventListener('keydown', (e) => {
       if (screen !== 'game') send({ t: 'start' });
       break;
     case 'Escape':
-      if (screen !== 'lobby') send({ t: 'lobby' });
+      if (weaponsOpen()) showWeapons(false);
+      else if (screen !== 'lobby') send({ t: 'lobby' });
       break;
     case 'KeyM':
       toggleMusic();

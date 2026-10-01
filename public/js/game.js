@@ -4,7 +4,7 @@
 // `hooks` (shoot, hit, explode, kill, flag, ...) and the host turns those into
 // events for screens, announcer lines and phone vibrations.
 
-import { WEAPONS, GRENADE, HOLE, FREEZE, SWING } from './weapons.js';
+import { WEAPONS, GRENADE, HOLE, FREEZE, SWING, TOGGLES } from './weapons.js';
 import { clamp, rand, approach, angleDiff, segAABB, distToBox } from './util.js';
 import { updateBot } from './bots.js';
 
@@ -27,12 +27,12 @@ const tmpHit = { t: 0, nx: 0, ny: 0 };
 export class Game {
   constructor(map, settings, hooks = {}) {
     this.map = map;
-    this.s = settings; // { mode, scoreLimit, timeLimit, aimAssist, demo }
+    this.s = settings; // { mode, scoreLimit, timeLimit, aimAssist, demo, off: [switched-off weapons] }
     this.h = hooks;
     this.teamMode = settings.mode !== 'ffa';
     this.players = new Map();
     this.projectiles = [];
-    this.pickups = map.pickups.map((k) => ({ ...k, t: 0 }));
+    this.pickups = this.makePickups(map, settings.off || []);
     this.flags = settings.mode === 'ctf' ? { red: this.makeFlag('red'), blue: this.makeFlag('blue') } : null;
     this.score = { red: 0, blue: 0 };
     this.time = 0;
@@ -45,6 +45,23 @@ export class Game {
     this.firstBlood = false;
     this.nextId = 1;
     this.pickupVer = 0;
+  }
+
+  // Weapons switched off in the lobby: their spots get other weapons (the same
+  // on both sides of the map), and switched-off black holes just disappear.
+  makePickups(map, off) {
+    const on = (k) => !off.includes(k);
+    let pool = TOGGLES.filter((k) => k !== 'hole' && k !== 'bees' && on(k));
+    if (!pool.length && on('bees')) pool = ['bees']; // keep the bees rare unless they are all that's left
+    const out = [];
+    for (const k of map.pickups) {
+      if (k.kind === 'weapon' ? on(k.weapon) : k.kind !== 'hole' || on('hole')) out.push({ ...k, t: 0 });
+      else if (k.kind === 'weapon' && pool.length) {
+        const i = ((Math.round(Math.min(k.x, map.W - k.x)) * 73856093) ^ (Math.round(k.y) * 19349663)) >>> 0;
+        out.push({ ...k, weapon: pool[i % pool.length], t: 0 });
+      }
+    }
+    return out;
   }
 
   emit(name, ...args) {

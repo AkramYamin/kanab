@@ -28,6 +28,9 @@ const MIME = {
   '.png': 'image/png',
   '.json': 'application/json',
   '.mp3': 'audio/mpeg',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
   '.webmanifest': 'application/manifest+json',
 };
 
@@ -117,6 +120,7 @@ const host = new Host(
   },
   process.env.SETTINGS_FILE || path.join(ROOT, '.settings.json'),
   path.join(PUBLIC, 'voices'),
+  path.join(PUBLIC, 'family'),
 );
 
 function allocPid() {

@@ -44,6 +44,17 @@ default voice is the male Arabic demo voice from the Chatterbox project
 (`mtl_prompts/ar_m1.flac`), used for both languages so the announcer sounds
 like the same person.
 
+## Say the kids' team names
+
+With team names in `public/family/family.json` (see the main README), this
+remakes only the 10 team lines per language («فريق سارة يسجّل!», "Team Sara
+scores!") in the announcer's voice and keeps them in `public/family/voices/`,
+off GitHub:
+
+```bash
+npm run voices -- --teams
+```
+
 ## Make a family voice pack
 
 1. Record 5–10 seconds of clear speech in a quiet room: any sentence, spoken

@@ -33,10 +33,11 @@ export const WEAPONS = {
     name: 'Freeze Ray', kind: 'ice', rate: 10, dmg: 3, speed: 1500, spread: 0.05, pellets: 1,
     ammo: 90, life: 0.42, knock: 6, len: 40, color: '#9fe8ff', chill: 0.17,
   },
-  // Three bees per shot that curve toward the nearest enemy.
+  // Three bees per shot that curve toward the nearest enemy. Strong, so each
+  // map has just one, high up in the middle.
   bees: {
-    name: 'Bee Swarm', kind: 'bee', rate: 1.3, dmg: 15, speed: 760, spread: 0.32, pellets: 3,
-    ammo: 8, life: 2.4, knock: 110, len: 34, color: '#ffd23f', turn: 4.5, seek: 750,
+    name: 'Bee Swarm', kind: 'bee', rate: 1.3, dmg: 13, speed: 760, spread: 0.32, pellets: 3,
+    ammo: 6, life: 2.4, knock: 110, len: 34, color: '#ffd23f', turn: 4, seek: 650,
   },
   // Melee: a dash plus a swing that launches whoever it hits.
   hammer: {
@@ -55,6 +56,9 @@ export const HOLE = { fuse: 0.9, life: 2.2, radius: 430, pull: 2700, dmg: 75, bl
 export const FREEZE = { time: 1.6, immune: 1.5, decay: 0.35 };
 
 export const SWING = 0.22; // hammer swing length in seconds
+
+// What the lobby can switch off (the blaster always stays). 'hole' = black hole pickups.
+export const TOGGLES = ['shotgun', 'minigun', 'rail', 'rocket', 'flamer', 'bouncer', 'freeze', 'bees', 'hammer', 'hole'];
 
 // Emoji-free little glyphs used in the kill feed and on the phone.
 export const WEAPON_ICON = {

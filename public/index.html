@@ -47,13 +47,25 @@
       <button id="fsBtn" title="Fullscreen (F)">⛶</button>
     </div>
     <div class="sound-hint" id="soundHint" data-i18n="soundHint"></div>
+
+    <div class="wpanel hidden" id="wpanel">
+      <div class="wcard">
+        <h2 data-i18n="wp.title"></h2>
+        <p data-i18n="wp.hint"></p>
+        <div class="wgrid" id="wgrid"></div>
+        <div class="wactions">
+          <button class="ghost" id="wAll" data-i18n="wp.allOn"></button>
+          <button class="start" id="wDone"><span data-i18n="wp.done"></span> <kbd>Esc</kbd></button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="hud" class="screen hidden">
     <div class="scorebar" id="scorebar">
-      <div class="side red"><span class="flagico home" id="flagRed"></span><span class="num" id="scRed">0</span></div>
+      <div class="side red"><span class="tname" id="tnRed"></span><span class="flagico home" id="flagRed"></span><span class="num" id="scRed">0</span></div>
       <div class="mid"><div class="timer" id="timer">10:00</div><div class="goal" id="goal"></div></div>
-      <div class="side blue"><span class="num" id="scBlue">0</span><span class="flagico home" id="flagBlue"></span></div>
+      <div class="side blue"><span class="num" id="scBlue">0</span><span class="flagico home" id="flagBlue"></span><span class="tname" id="tnBlue"></span></div>
     </div>
     <div class="ffa-board hidden" id="ffaBoard"></div>
     <div id="feed"></div>
@@ -73,6 +85,9 @@
       <div class="auto" id="autoBack"></div>
     </div>
   </section>
+
+  <!-- Team intro while the match counts down (with the family picture, if any) -->
+  <div id="vs" class="hidden"><div class="vs-names"><b class="r" id="vsRed"></b><i>VS</i><b class="b" id="vsBlue"></b></div></div>
 
   <div id="banner"></div>
   <div id="toasts"></div>

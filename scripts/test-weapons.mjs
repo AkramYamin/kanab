@@ -109,5 +109,25 @@ console.log('Black Hole');
   run(g, 3, (t) => { A.input.aiming = true; A.input.aim = -0.35; if (t < 0.01) A.input.gren = (A.input.gren + 1) & 255; });
   check(Math.abs(B.x - x0) < 5, `teammate stays put (moved ${Math.abs(B.x - x0).toFixed(1)})`);
 }
+console.log('Weapons switched off in the lobby');
+{
+  const { MAPS } = await import('../public/js/maps.js');
+  const count = (g, w) => g.pickups.filter((k) => k.weapon === w).length;
+  for (const map of MAPS) {
+    const all = new Game(map, { mode: 'ctf', scoreLimit: 3, timeLimit: 600 });
+    const g = new Game(map, { mode: 'ctf', scoreLimit: 3, timeLimit: 600, off: ['rocket', 'bees', 'hole'] });
+    const mirrored = g.pickups.every((k) => g.pickups.some((o) => o.x === map.W - k.x && o.y === k.y && o.weapon === k.weapon));
+    check(count(all, 'bees') === 1 && count(g, 'bees') === 0 && count(g, 'rocket') === 0 && !g.pickups.some((k) => k.kind === 'hole'),
+      `${map.id}: one bee swarm normally; rockets, bees and black holes gone when switched off`);
+    check(g.pickups.filter((k) => k.kind === 'weapon').length === all.pickups.filter((k) => k.kind === 'weapon').length && mirrored,
+      `${map.id}: their spots get other weapons, the same on both sides`);
+  }
+  const map = MAPS[0];
+  const hammers = new Game(map, { mode: 'ctf', scoreLimit: 3, timeLimit: 600, off: ['shotgun', 'minigun', 'rail', 'rocket', 'flamer', 'bouncer', 'freeze', 'bees'] });
+  check(hammers.pickups.filter((k) => k.kind === 'weapon').every((k) => k.weapon === 'hammer'), 'only the hammer on: every weapon spot is a hammer');
+  const none = new Game(map, { mode: 'ctf', scoreLimit: 3, timeLimit: 600, off: ['shotgun', 'minigun', 'rail', 'rocket', 'flamer', 'bouncer', 'freeze', 'bees', 'hammer'] });
+  check(!none.pickups.some((k) => k.kind === 'weapon') && none.pickups.some((k) => k.kind === 'health'), 'everything off: blaster only, health still there');
+}
+
 console.log(fails ? `\n${fails} failed` : '\nall passed');
 process.exit(fails ? 1 : 0);

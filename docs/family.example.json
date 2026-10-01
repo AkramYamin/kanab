@@ -1,0 +1,7 @@
+{
+  "teams": {
+    "red": { "en": "Sara", "ar": "سارة" },
+    "blue": { "en": "Omar", "ar": "عمر" }
+  },
+  "background": "background.jpg"
+}

@@ -5,7 +5,8 @@
 //   pads    [x, y, vx, vy]      jump pads sitting on a surface at y
 //   teles   [[x1, y1], [x2, y2], colorIndex]   a two-way teleporter pair
 //   pickups [x, y, kind, weapon?]
-//   props   [kind, x, y, arg?]  decoration only (arg = height for columns)
+//   props   [kind, x, y, arg?]  decoration only (arg = height for columns,
+//                               radius for tree canopies, width for huts)
 // Everything under "mirror*" is copied to the right half, so both teams get
 // the same base. The red team always starts on the left.
 
@@ -68,6 +69,21 @@ const THEMES = {
   },
 };
 
+THEMES.forest = {
+  sky: ['#10302c', '#1f4c40', '#3f7b58', '#94c07a', '#ece6ac'],
+  celestial: { kind: 'sun', x: 0.62, y: 0.2, r: 0.05, color: '#fff3c8' },
+  stars: 0,
+  layers: [
+    { kind: 'hills', color: '#335f49', base: 0.5, amp: 300, seed: 11, par: 0.1, trees: true, pines: true },
+    { kind: 'hills', color: '#24463a', base: 0.66, amp: 220, seed: 17, par: 0.22, trees: true, pines: true },
+  ],
+  haze: 'rgba(236,230,172,0.10)',
+  solid: { style: 'bark', fill: ['#7a5638', '#3c291b'], rim: '#22160d', top: '#7cc45a', topStyle: 'grass' },
+  plat: { body: '#8c6039', top: '#d0a266', edge: '#3a2616', planks: true },
+  back: '#1c2a1e',
+  smoke: '#5a6650',
+};
+
 export const TELE_COLORS = ['#35f0ff', '#ff6bd6'];
 
 const MAP_DEFS = [
@@ -92,12 +108,12 @@ const MAP_DEFS = [
     mirrorPads: [[1200, 1800, 0, -1900], [700, 1800, 0, -1750]],
     teles: [[[80, 1680], [3320, 1680], 0]],
     mirrorTeles: [[[1090, 1800], [1110, 620], 1]],
-    pickups: [[1700, 420, 'weapon', 'rocket'], [1700, 1330, 'power'], [1700, 1800, 'health']],
+    pickups: [[1700, 420, 'weapon', 'bees'], [1700, 1330, 'power'], [1700, 1800, 'health']],
     mirrorPickups: [
       [110, 600, 'weapon', 'rail'], [900, 1160, 'weapon', 'shotgun'], [1200, 1000, 'weapon', 'minigun'],
       [300, 1680, 'weapon', 'flamer'], [1140, 1360, 'weapon', 'bouncer'], [820, 1800, 'health'],
       [200, 860, 'grenades'], [1400, 520, 'grenades'],
-      [775, 1440, 'weapon', 'freeze'], [820, 760, 'weapon', 'bees'], [1400, 1180, 'weapon', 'hammer'], [670, 1620, 'hole'],
+      [775, 1440, 'weapon', 'freeze'], [820, 760, 'weapon', 'rocket'], [1400, 1180, 'weapon', 'hammer'], [670, 1620, 'hole'],
     ],
     mirrorProps: [
       ['banner', 60, 1060], ['banner', 380, 1060], ['lamp', 560, 1060], ['crate', 955, 1700], ['cactus', 1360, 1800],
@@ -125,12 +141,12 @@ const MAP_DEFS = [
     mirrorBacks: [[1040, 1520, 140, 200]],
     mirrorPads: [[520, 1720, 0, -1800], [1370, 1720, 0, -1500]],
     mirrorTeles: [[[300, 1900], [1110, 820], 0]],
-    pickups: [[1700, 560, 'weapon', 'rocket'], [1700, 840, 'power'], [1700, 1820, 'health'], [1700, 1460, 'grenades']],
+    pickups: [[1700, 560, 'weapon', 'bees'], [1700, 840, 'power'], [1700, 1820, 'health'], [1700, 1460, 'grenades']],
     mirrorPickups: [
       [45, 520, 'weapon', 'rail'], [740, 1340, 'weapon', 'shotgun'], [570, 1000, 'weapon', 'minigun'],
       [900, 1900, 'weapon', 'flamer'], [1375, 1200, 'weapon', 'bouncer'], [940, 1720, 'health'],
       [240, 880, 'grenades'], [820, 780, 'health'],
-      [740, 1120, 'weapon', 'freeze'], [1365, 900, 'weapon', 'bees'], [520, 640, 'weapon', 'hammer'], [600, 1900, 'hole'],
+      [740, 1120, 'weapon', 'freeze'], [1365, 900, 'weapon', 'rocket'], [520, 640, 'weapon', 'hammer'], [600, 1900, 'hole'],
     ],
     mirrorProps: [['banner', 30, 1080], ['banner', 410, 1080], ['lamp', 1300, 1720], ['lamp', 1540, 1720], ['antenna', 1110, 820]],
     flag: [220, 1080],
@@ -152,12 +168,12 @@ const MAP_DEFS = [
     mirrorBacks: [[0, 1580, 560, 120]],
     mirrorPads: [[820, 1800, 0, -2050], [470, 1200, 0, -1600]],
     mirrorTeles: [[[100, 1700], [1560, 1800], 0]],
-    pickups: [[1700, 700, 'weapon', 'rocket'], [1700, 1800, 'power'], [1700, 1500, 'health']],
+    pickups: [[1700, 700, 'weapon', 'bees'], [1700, 1800, 'power'], [1700, 1500, 'health']],
     mirrorPickups: [
       [80, 700, 'weapon', 'rail'], [800, 1360, 'weapon', 'shotgun'], [1210, 1200, 'weapon', 'minigun'],
       [300, 1700, 'weapon', 'flamer'], [1060, 1540, 'weapon', 'bouncer'], [340, 960, 'grenades'],
       [660, 1800, 'health'], [1050, 820, 'grenades'],
-      [1380, 1000, 'weapon', 'freeze'], [850, 820, 'weapon', 'bees'], [410, 720, 'weapon', 'hammer'], [1250, 1800, 'hole'],
+      [1380, 1000, 'weapon', 'freeze'], [850, 820, 'weapon', 'rocket'], [410, 720, 'weapon', 'hammer'], [1250, 1800, 'hole'],
     ],
     mirrorProps: [['banner', 180, 1200], ['banner', 500, 1200], ['pine', 620, 1800], ['pine', 1320, 1800], ['torch', 30, 1700]],
     flag: [300, 1200],
@@ -181,20 +197,63 @@ const MAP_DEFS = [
     mirrorBacks: [[240, 1150, 360, 650]],
     mirrorPads: [[760, 1800, 0, -1500], [1260, 1640, 0, -1800]],
     mirrorTeles: [[[400, 1800], [1700, 1640], 1]],
-    pickups: [[1800, 560, 'weapon', 'rocket'], [1800, 1640, 'power'], [1800, 1060, 'health']],
+    pickups: [[1800, 560, 'weapon', 'bees'], [1800, 1640, 'power'], [1800, 1060, 'health']],
     mirrorPickups: [
       [100, 620, 'weapon', 'rail'], [810, 1300, 'weapon', 'shotgun'], [1000, 1050, 'weapon', 'minigun'],
       [520, 1800, 'weapon', 'flamer'], [1130, 700, 'weapon', 'bouncer'], [270, 880, 'grenades'],
       [1380, 1480, 'health'], [1100, 1800, 'health'],
-      [1340, 900, 'weapon', 'freeze'], [760, 800, 'weapon', 'bees'], [440, 420, 'weapon', 'hammer'], [960, 1800, 'hole'],
+      [1340, 900, 'weapon', 'freeze'], [760, 800, 'weapon', 'rocket'], [440, 420, 'weapon', 'hammer'], [960, 1800, 'hole'],
     ],
     mirrorProps: [['banner', 20, 1100], ['banner', 580, 1100], ['torch', 1230, 1640], ['torch', 1700, 1060], ['palm', 950, 1800]],
     flag: [440, 1100],
     spawns: [[60, 1100], [160, 1100], [260, 1100], [540, 1100], [150, 880], [400, 880]],
   },
+  {
+    // Treehouses on giant trees, a hollow log under the great oak in the
+    // middle, and rope bridges through the treetops. Two ways across: through
+    // the log, or over the top of the oak.
+    id: 'forest',
+    name: 'Treehouse Forest',
+    theme: 'forest',
+    W: 3600,
+    H: 2000,
+    solids: [[0, 1900, 3600, 100], [1560, 1760, 480, 40], [1760, 536, 80, 1224]],
+    mirrorSolids: [[310, 1076, 100, 824], [1150, 1296, 90, 604]],
+    plats: [[1650, 520, 300]],
+    mirrorPlats: [
+      // the treehouse: floor, roof deck, and a ladder of branches up the trunk
+      [80, 1060, 760], [140, 860, 400],
+      [120, 1772, 170], [430, 1644, 170], [120, 1516, 170], [430, 1388, 170], [120, 1260, 170], [430, 1132, 170],
+      // the climbing tree in the middle of each side
+      [960, 1772, 150], [1270, 1644, 150], [960, 1516, 150], [1270, 1388, 150], [1060, 1280, 280],
+      // rope bridges up to the oak
+      [860, 880, 260], [1180, 760, 300], [1500, 640, 260],
+    ],
+    backs: [[1560, 1800, 480, 100]],
+    mirrorPads: [[900, 1900, -200, -1950], [1100, 1280, 0, -1500]],
+    mirrorTeles: [[[620, 1900], [1330, 760], 0]],
+    pickups: [[1800, 520, 'weapon', 'bees'], [1800, 1900, 'power']],
+    mirrorPickups: [
+      [340, 860, 'weapon', 'rail'], [700, 1900, 'weapon', 'hammer'], [1035, 1772, 'weapon', 'bouncer'],
+      [1200, 1280, 'weapon', 'shotgun'], [1345, 1644, 'weapon', 'flamer'], [990, 880, 'weapon', 'minigun'],
+      [1430, 760, 'weapon', 'freeze'], [1630, 640, 'weapon', 'rocket'],
+      [760, 1060, 'health'], [1450, 1900, 'health'], [200, 1900, 'grenades'], [1035, 1516, 'grenades'], [1620, 1760, 'hole'],
+    ],
+    props: [['canopy', 1800, 470, 330]],
+    mirrorProps: [
+      ['canopy', 360, 800, 290], ['canopy', 1200, 1230, 210], ['hut', 360, 1060, 360],
+      ['banner', 90, 1060], ['banner', 830, 1060], ['lamp', 170, 860],
+      ['mushroom', 520, 1900], ['mushroom', 1500, 1900], ['bush', 820, 1900], ['bush', 1260, 1900], ['pine', 1000, 1900],
+    ],
+    flag: [240, 1060],
+    spawns: [[140, 1060], [200, 1060], [460, 1060], [540, 1060], [620, 1060], [300, 860]],
+  },
 ];
 
 const RESPAWN = { weapon: 10, health: 12, grenades: 12, power: 40, hole: 25 };
+// Strong weapons come back slowly. Rockets have 2 spots, so 20 s keeps them as
+// common as one spot every 10 s; the single Bee Swarm is the rarest.
+const SLOW_WEAPONS = { bees: 25, rocket: 20 };
 
 function build(def) {
   const { W, H } = def;
@@ -208,7 +267,7 @@ function build(def) {
   for (const [x, y, w] of def.mirrorPlats || []) plats.push({ x, y, w }, { x: mx(x, w), y, w });
 
   const pickups = [];
-  const addPickup = ([x, y, kind, weapon]) => pickups.push({ x, y, kind, weapon, respawn: RESPAWN[kind] });
+  const addPickup = ([x, y, kind, weapon]) => pickups.push({ x, y, kind, weapon, respawn: SLOW_WEAPONS[weapon] || RESPAWN[kind] });
   (def.pickups || []).forEach(addPickup);
   for (const [x, y, kind, weapon] of def.mirrorPickups || []) {
     addPickup([x, y, kind, weapon]);

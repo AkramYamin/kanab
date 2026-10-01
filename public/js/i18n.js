@@ -5,6 +5,9 @@
 //   t('say.scores', { team: 'red' })  ->  "Red team scores!" / "الفريق الأحمر يسجّل!"
 // A {team} parameter given as 'red' / 'blue' is translated automatically;
 // {x|up} upper-cases the value (does nothing to Arabic).
+// Teams can be named after people (public/family/family.json). Then a key's
+// "@named" version is used when there is one, because "Team Sara" and «فريق سارة»
+// are worded differently from "Red team" and «الفريق الأحمر».
 
 const en = {
   'logo.small': 'COUCH',
@@ -24,6 +27,8 @@ const en = {
   'team.blue': 'Blue',
   redTeam: 'Red team',
   blueTeam: 'Blue team',
+  'redTeam@named': 'Team {red}',
+  'blueTeam@named': 'Team {blue}',
   vs: 'VS',
   ffaTitle: 'Everyone vs everyone',
   bot: 'Bot',
@@ -42,6 +47,15 @@ const en = {
   'set.lang': 'Language',
   'set.voice': 'Announcer',
   'voice.system': 'Computer voice',
+  'set.weapons': 'Weapons',
+  'wp.all': 'All',
+  'wp.none': 'Blaster only',
+  'wp.some': '{n} of {of}',
+  'wp.title': 'Weapons',
+  'wp.hint': 'Tap a weapon to switch it on or off. The blaster is always on.',
+  'wp.allOn': 'All on',
+  'wp.done': 'Done',
+  'wp.off': 'OFF',
   'mode.ctf': 'Capture the Flag',
   'mode.tdm': 'Team Deathmatch',
   'mode.ffa': 'Free for All',
@@ -49,6 +63,7 @@ const en = {
   'map.district': 'Neon District',
   'map.glacier': 'Glacier Keep',
   'map.temple': 'Jungle Temple',
+  'map.forest': 'Treehouse Forest',
   'screen.tv': 'TV',
   'screen.phone': 'Phones',
   'skill.easy': 'Easy',
@@ -96,6 +111,11 @@ const en = {
   'say.flagReturned': '{team} flag returned',
   'say.flagDropped': '{team} flag dropped',
   'say.teamWins': '{team} team wins!',
+  'say.flagTaken@named': "{team}'s flag taken!",
+  'say.scores@named': 'Team {team} scores!',
+  'say.flagReturned@named': "{team}'s flag returned",
+  'say.flagDropped@named': "{team}'s flag dropped",
+  'say.teamWins@named': 'Team {team} wins!',
   'say.playerWins': '{name} wins!',
   'say.draw': "It's a draw!",
   // Recorded announcer clips can't say player names, so these lines go without.
@@ -105,16 +125,21 @@ const en = {
 
   // big messages
   'ba.scores': '{team|up} SCORES!',
+  'ba.scores@named': 'TEAM {team|up} SCORES!',
   'ba.scoresSub': '{name} captured the flag',
   'ba.onFire': '{name} is on fire!',
   'ba.legendary': '{name} is legendary!',
   'ba.streakSub': '{n} knockouts in a row',
   'title.teamWins': '{team|up} TEAM WINS!',
+  'title.teamWins@named': 'TEAM {team|up} WINS!',
   'title.playerWins': '{name|up} WINS!',
   'title.draw': "IT'S A DRAW!",
   'to.grabbed': '{name} grabbed the {team} flag!',
   'to.saved': '{name} saved the {team} flag!',
   'to.backHome': '{team} flag is back home',
+  'to.grabbed@named': "{name} grabbed {team}'s flag!",
+  'to.saved@named': "{name} saved {team}'s flag!",
+  'to.backHome@named': "{team}'s flag is back home",
   'ft.firstBlood': 'FIRST BLOOD!',
   'ft.double': 'DOUBLE KILL!',
   'ft.triple': 'TRIPLE KILL!',
@@ -136,6 +161,7 @@ const en = {
   'w.freeze': 'Freeze Ray',
   'w.bees': 'Bee Swarm',
   'w.hammer': 'Big Hammer',
+  'w.hole': 'Black Hole',
 
   // phone
   'ph.name': 'Your name',
@@ -148,6 +174,8 @@ const en = {
   'ph.watchPhone': 'Game on my phone',
   'ph.redTeam': 'RED TEAM',
   'ph.blueTeam': 'BLUE TEAM',
+  'ph.redTeam@named': 'TEAM {red|up}',
+  'ph.blueTeam@named': 'TEAM {blue|up}',
   'ph.captain': "👑 You're the captain",
   'ph.capHint': 'Tap a setting to change it. Everyone ready? Start!',
   'ph.waitCap': 'Waiting for 👑 {name} to start…',
@@ -179,6 +207,7 @@ const en = {
   'ph.frozen': '❄️ FROZEN! Wait a second…',
   'ph.readyDots': 'Get ready…',
   'ph.teamLabel': '{team} team',
+  'ph.teamLabel@named': 'Team {team}',
   'ph.ffa': 'Free for all',
   'ph.viewTv': 'Watch the TV instead',
   'ph.viewPhone': 'Show the game on this phone',
@@ -203,6 +232,8 @@ const ar = {
   'team.blue': 'الأزرق',
   redTeam: 'الفريق الأحمر',
   blueTeam: 'الفريق الأزرق',
+  'redTeam@named': 'فريق {red}',
+  'blueTeam@named': 'فريق {blue}',
   vs: 'ضد',
   ffaTitle: 'الكل ضد الكل',
   bot: 'روبوت',
@@ -221,6 +252,15 @@ const ar = {
   'set.lang': 'اللغة',
   'set.voice': 'صوت المعلّق',
   'voice.system': 'صوت الجهاز',
+  'set.weapons': 'الأسلحة',
+  'wp.all': 'الكل',
+  'wp.none': 'مسدس الليزر فقط',
+  'wp.some': '{n} من {of}',
+  'wp.title': 'الأسلحة',
+  'wp.hint': 'اضغط على سلاح لتشغيله أو إيقافه. مسدس الليزر يبقى دائمًا.',
+  'wp.allOn': 'تشغيل الكل',
+  'wp.done': 'تم',
+  'wp.off': 'متوقف',
   'mode.ctf': 'التقاط العلم',
   'mode.tdm': 'معركة الفرق',
   'mode.ffa': 'الكل ضد الكل',
@@ -228,6 +268,7 @@ const ar = {
   'map.district': 'حي النيون',
   'map.glacier': 'قلعة الجليد',
   'map.temple': 'معبد الغابة',
+  'map.forest': 'غابة بيوت الشجر',
   'screen.tv': 'التلفاز',
   'screen.phone': 'الهواتف',
   'skill.easy': 'سهل',
@@ -274,6 +315,11 @@ const ar = {
   'say.flagReturned': 'عاد علم الفريق {team}',
   'say.flagDropped': 'سقط علم الفريق {team}',
   'say.teamWins': 'الفريق {team} يفوز!',
+  'say.flagTaken@named': 'أُخذ علم فريق {team}!',
+  'say.scores@named': 'فريق {team} يسجّل!',
+  'say.flagReturned@named': 'عاد علم فريق {team}',
+  'say.flagDropped@named': 'سقط علم فريق {team}',
+  'say.teamWins@named': 'فريق {team} يفوز!',
   'say.playerWins': '{name} يفوز!',
   'say.draw': 'تعادل!',
   'clip.onFire': 'مشتعل!',
@@ -281,16 +327,21 @@ const ar = {
   'clip.playerWins': 'لدينا فائز!',
 
   'ba.scores': 'الفريق {team} يسجّل!',
+  'ba.scores@named': 'فريق {team} يسجّل!',
   'ba.scoresSub': '{name} التقط العلم',
   'ba.onFire': '{name} مشتعل!',
   'ba.legendary': '{name} أسطوري!',
   'ba.streakSub': '{n} إقصاءات متتالية',
   'title.teamWins': 'الفريق {team} يفوز!',
+  'title.teamWins@named': 'فريق {team} يفوز!',
   'title.playerWins': '{name} يفوز!',
   'title.draw': 'تعادل!',
   'to.grabbed': '{name} أخذ علم الفريق {team}!',
   'to.saved': '{name} أنقذ علم الفريق {team}!',
   'to.backHome': 'عاد علم الفريق {team} إلى القاعدة',
+  'to.grabbed@named': '{name} أخذ علم فريق {team}!',
+  'to.saved@named': '{name} أنقذ علم فريق {team}!',
+  'to.backHome@named': 'عاد علم فريق {team} إلى القاعدة',
   'ft.firstBlood': 'الضربة الأولى!',
   'ft.double': 'ضربة مزدوجة!',
   'ft.triple': 'ضربة ثلاثية!',
@@ -312,6 +363,7 @@ const ar = {
   'w.freeze': 'شعاع التجميد',
   'w.bees': 'سرب النحل',
   'w.hammer': 'المطرقة الكبيرة',
+  'w.hole': 'الثقب الأسود',
 
   'ph.name': 'اسمك',
   'ph.namePh': 'اكتب اسمك',
@@ -323,6 +375,8 @@ const ar = {
   'ph.watchPhone': 'اللعبة على هاتفي',
   'ph.redTeam': 'الفريق الأحمر',
   'ph.blueTeam': 'الفريق الأزرق',
+  'ph.redTeam@named': 'فريق {red}',
+  'ph.blueTeam@named': 'فريق {blue}',
   'ph.captain': '👑 أنت القائد',
   'ph.capHint': 'اضغط على أي إعداد لتغييره. هل الجميع جاهز؟ ابدأ!',
   'ph.waitCap': 'بانتظار 👑 {name} ليبدأ اللعبة…',
@@ -354,6 +408,7 @@ const ar = {
   'ph.frozen': '❄️ تجمّدت! انتظر لحظة…',
   'ph.readyDots': 'استعدّ…',
   'ph.teamLabel': 'الفريق {team}',
+  'ph.teamLabel@named': 'فريق {team}',
   'ph.ffa': 'الكل ضد الكل',
   'ph.viewTv': 'شاهد على التلفاز بدلًا من ذلك',
   'ph.viewPhone': 'اعرض اللعبة على هذا الهاتف',
@@ -377,6 +432,17 @@ export const FUN_NAMES = {
 let lang = 'en';
 export const getLang = () => lang;
 
+// { red: { en: 'Sara', ar: 'سارة' }, blue: { ... } } or null for plain Red / Blue.
+let teamNames = null;
+export function setTeamNames(names) {
+  const next = names?.red && names?.blue ? names : null;
+  const changed = JSON.stringify(next) !== JSON.stringify(teamNames);
+  teamNames = next;
+  return changed;
+}
+export const hasTeamNames = () => !!teamNames;
+const teamName = (team) => teamNames && (teamNames[team][lang] || teamNames[team].en);
+
 // Switch language; also flips the page to right-to-left for Arabic.
 export function setLang(l) {
   const next = DICTS[l] ? l : 'en';
@@ -390,9 +456,13 @@ export function setLang(l) {
 }
 
 export function t(key, params = {}) {
-  const v = DICTS[lang][key] ?? en[key] ?? key;
+  const v = (teamNames && DICTS[lang][`${key}@named`]) ?? DICTS[lang][key] ?? en[key] ?? key;
   const p = { ...params };
-  if (p.team === 'red' || p.team === 'blue') p.team = t(`team.${p.team}`);
+  if (p.team === 'red' || p.team === 'blue') p.team = teamName(p.team) || t(`team.${p.team}`);
+  if (teamNames) {
+    p.red = teamName('red');
+    p.blue = teamName('blue');
+  }
   if (typeof v === 'function') return v(p);
   return v.replace(/\{(\w+)(\|up)?\}/g, (m, k, up) => {
     const s = p[k] === undefined ? '' : String(p[k]);
@@ -420,6 +490,7 @@ export function settingText(s) {
     case 'assist': return t(s.v ? 'on' : 'off');
     case 'lang': return t(`lang.${s.v}`);
     case 'voice': return s.v === 'system' ? t('voice.system') : s.label?.[lang] || s.label?.en || s.v;
+    case 'weapons': return s.v >= s.of ? t('wp.all') : s.v ? t('wp.some', { n: s.v, of: s.of }) : t('wp.none');
     default: return String(s.v);
   }
 }

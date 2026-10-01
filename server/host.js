@@ -8,7 +8,7 @@ import path from 'node:path';
 import { MAPS } from '../public/js/maps.js';
 import { Game, TEAM_COLOR, STEP, blankInput } from '../public/js/game.js';
 import { makeBot, BOT_NAMES, BOT_NAMES_AR } from '../public/js/bots.js';
-import { WEAPONS } from '../public/js/weapons.js';
+import { WEAPONS, TOGGLES } from '../public/js/weapons.js';
 import { encodeSnapshot } from '../public/js/protocol.js';
 
 const MODE_ORDER = ['ctf', 'tdm', 'ffa'];
@@ -19,19 +19,22 @@ const TIMES = [5, 10, 15];
 const BOT_COLORS = ['#ffcc4d', '#5dff8a', '#ff7ae0', '#7df9ff', '#ff9f43', '#b28dff', '#a3ff5c', '#ffffff'];
 export const KB_PID = 900;
 const BOT_PID = 1000;
-const DEFAULTS = { mode: 'ctf', map: 0, bots: 2, skill: 'easy', limit: 0, time: 1, assist: true, screen: 'tv', lang: 'en', voice: 'announcer' };
+const DEFAULTS = { mode: 'ctf', map: 0, bots: 2, skill: 'easy', limit: 0, time: 1, assist: true, screen: 'tv', lang: 'en', voice: 'announcer', off: [] };
 // Settings that only change what screens say or show, so they can change mid-match.
 const LIVE_SETTINGS = ['lang', 'voice'];
 
 export class Host {
   // net: { phone(pid, str), phones(str), screens(str), hasScreens() }
-  constructor(net, settingsFile, voicesDir) {
+  constructor(net, settingsFile, voicesDir, familyDir) {
     this.net = net;
     this.settingsFile = settingsFile;
     this.voicesDir = voicesDir;
+    this.familyDir = familyDir;
     this.packs = this.voicePacks();
     this.settings = { ...DEFAULTS, ...this.loadSettings() };
     if (!(this.settings.map >= 0 && this.settings.map < MAPS.length)) this.settings.map = 0;
+    if (!Array.isArray(this.settings.off)) this.settings.off = [];
+    this.settings.off = this.settings.off.filter((k) => TOGGLES.includes(k));
     this.lobby = new Map(); // pid -> { pid, name, color, team, connected, joinedAt, leftAt, keyboard, view }
     this.inputs = new Map(); // pid -> input object shared with the Game player
     this.viewers = new Set(); // phones that show the game themselves
@@ -86,6 +89,37 @@ export class Host {
       }
     }
     return packs;
+  }
+
+  // Family touches kept off GitHub (public/family/family.json): team names, a
+  // background picture and announcer lines that say the names. Read whenever
+  // they are needed (it's tiny), so edits show up without a restart.
+  family() {
+    let conf;
+    try {
+      conf = JSON.parse(fs.readFileSync(path.join(this.familyDir, 'family.json'), 'utf8'));
+    } catch {
+      return null;
+    }
+    const clean = (v) => String(v ?? '').replace(/[<>&"']/g, '').trim().slice(0, 20);
+    const team = (t) => (t && clean(t.en) ? { en: clean(t.en), ar: clean(t.ar) || clean(t.en) } : null);
+    const red = team(conf.teams?.red);
+    const blue = team(conf.teams?.blue);
+    const out = { teams: red && blue ? { red, blue } : null, bg: null, voices: [] };
+    const bg = path.basename(String(conf.background || 'background.jpg'));
+    try {
+      out.bg = `/family/${encodeURIComponent(bg)}?v=${Math.round(fs.statSync(path.join(this.familyDir, bg)).mtimeMs)}`;
+    } catch {
+      /* no picture yet */
+    }
+    try {
+      for (const d of fs.readdirSync(path.join(this.familyDir, 'voices'), { withFileTypes: true })) {
+        if (d.isDirectory() && fs.existsSync(path.join(this.familyDir, 'voices', d.name, 'manifest.json'))) out.voices.push(d.name);
+      }
+    } catch {
+      /* no family voices */
+    }
+    return out;
   }
 
   voiceNow() {
@@ -169,6 +203,9 @@ export class Host {
       case 'set':
         if (pid === cap && (this.screen === 'lobby' || LIVE_SETTINGS.includes(m.key))) this.changeSetting(m.key, 1);
         break;
+      case 'weapon':
+        if (pid === cap && this.screen === 'lobby') this.toggleWeapon(m.key);
+        break;
       case 'start':
         if (pid === cap && this.screen === 'lobby') this.startMatch();
         break;
@@ -218,6 +255,9 @@ export class Host {
     switch (m.t) {
       case 'set':
         if (this.screen === 'lobby' || LIVE_SETTINGS.includes(m.key)) this.changeSetting(m.key, m.dir === -1 ? -1 : 1);
+        break;
+      case 'weapon':
+        if (this.screen === 'lobby') this.toggleWeapon(m.key);
         break;
       case 'start':
         if (this.screen !== 'game') this.startMatch();
@@ -286,6 +326,16 @@ export class Host {
     this.refreshLobby();
   }
 
+  // Weapons panel in the lobby: switch one weapon on/off, or 'all' back on.
+  toggleWeapon(key) {
+    const s = this.settings;
+    if (key === 'all') s.off = [];
+    else if (TOGGLES.includes(key)) s.off = s.off.includes(key) ? s.off.filter((k) => k !== key) : [...s.off, key];
+    else return;
+    this.saveSettings();
+    this.refreshLobby();
+  }
+
   // Raw values: each screen shows them in its own words (see i18n.js).
   settingsView() {
     const s = this.settings;
@@ -301,6 +351,7 @@ export class Host {
       { key: 'assist', v: s.assist },
       { key: 'lang', v: s.lang },
       { key: 'voice', v: this.voiceNow(), label: this.packs.find((p) => p.id === this.voiceNow())?.label },
+      { key: 'weapons', v: TOGGLES.length - s.off.length, of: TOGGLES.length },
     ];
   }
 
@@ -330,6 +381,8 @@ export class Host {
       screenMode: this.settings.screen,
       lang: this.settings.lang,
       voice: this.voiceNow(),
+      family: this.family(),
+      weapons: TOGGLES.map((key) => ({ key, on: !this.settings.off.includes(key) })),
       bots: this.settings.bots,
       botSplit: this.botSplit(),
       canStart: players.some((p) => p.connected) || this.settings.bots >= 2,
@@ -394,7 +447,7 @@ export class Host {
     this.clearTimers();
     const map = MAPS[s.map];
     const mode = s.mode;
-    this.game = new Game(map, { mode, scoreLimit: LIMITS[mode][s.limit], timeLimit: TIMES[s.time] * 60, aimAssist: s.assist }, this.hooks());
+    this.game = new Game(map, { mode, scoreLimit: LIMITS[mode][s.limit], timeLimit: TIMES[s.time] * 60, aimAssist: s.assist, off: s.off }, this.hooks());
     const g = this.game;
     for (const pl of humans) {
       const inp = this.inputs.get(pl.pid);
@@ -421,6 +474,7 @@ export class Host {
       });
     }
     this.tick = 0;
+    this.pickupVer = -1; // send the (filtered) pickups with the very first snapshot
     this.events = [];
     this.phoneEvents = [];
     this.hudCache.clear();

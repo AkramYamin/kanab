@@ -105,6 +105,19 @@ input { font: inherit; }
 .setlist button b { font-size: 15px; font-weight: 800; }
 .setlist button:active { background: rgba(255, 204, 77, 0.2); }
 .capbox .big { width: 100%; }
+.capbox .big[hidden] { display: none; }
+.whint { margin: 0; color: var(--muted); font-size: 13px; text-align: center; }
+.wsheet { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.wsheet .wgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
+.wbtn {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px;
+  border-radius: 14px; border: 2px solid rgba(255, 204, 77, 0.55); background: rgba(255, 255, 255, 0.07);
+  font-weight: 800; font-size: 14px;
+}
+.wbtn canvas { width: 110px; height: 55px; }
+.wbtn.off { opacity: 0.45; filter: grayscale(1); border-color: var(--line); }
+.wbtn .tag { position: absolute; top: 6px; inset-inline-end: 8px; font-size: 10px; letter-spacing: 0.08em; color: #ff8a95; }
+.wbtn:not(.off) .tag { display: none; }
 .waitmsg { margin: 0; color: var(--muted); text-align: center; font-weight: 600; }
 .howto { display: grid; gap: 8px; font-size: 14px; color: var(--muted); width: min(100%, 380px); }
 .howto div { display: flex; align-items: center; gap: 10px; }
