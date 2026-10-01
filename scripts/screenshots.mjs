@@ -1,5 +1,7 @@
 // Captures README screenshots with headless Chrome: one TV plus four phones
-// that join, pick teams and play. Needs the game server running (npm start).
+// that join, pick teams and play. Needs a game server running; start it with
+// FAMILY_DIR=none so your own team names and picture stay out of the images:
+//   PORT=3100 FAMILY_DIR=none SETTINGS_FILE=/tmp/shots.json node server.js
 //
 //   npm run screenshots
 //   CHROME=/path/to/chrome BASE=http://localhost:3000 npm run screenshots

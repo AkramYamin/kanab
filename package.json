@@ -1,5 +1,5 @@
 {
-  "name": "couch-commandos",
+  "name": "space-heroes",
   "version": "0.1.0",
   "description": "A Soldat-inspired 2D team shooter for the big screen. Phones are the controllers.",
   "type": "module",

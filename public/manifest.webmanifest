@@ -1,6 +1,6 @@
 {
-  "name": "Couch Commandos Controller",
-  "short_name": "Commandos",
+  "name": "Space Heroes Controller",
+  "short_name": "Space Heroes",
   "start_url": "/play",
   "display": "fullscreen",
   "orientation": "landscape",

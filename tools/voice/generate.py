@@ -1,4 +1,4 @@
-"""Make an announcer voice pack for Couch Commandos with AI.
+"""Make an announcer voice pack for Space Heroes with AI.
 
 Chatterbox (Resemble AI, MIT license) turns each announcer line into speech in
 the voice of a short reference recording. Every line is spoken a few times

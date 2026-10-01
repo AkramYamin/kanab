@@ -10,8 +10,8 @@
 // are worded differently from "Red team" and «الفريق الأحمر».
 
 const en = {
-  'logo.small': 'COUCH',
-  'logo.big': 'COMMANDOS',
+  'logo.small': 'SPACE',
+  'logo.big': 'HEROES',
   tagline: 'Grab your phone, scan the code, and it turns into your controller',
   'step.1': 'Join the same Wi-Fi',
   'step.2': 'Point your camera here',
@@ -215,8 +215,8 @@ const en = {
 };
 
 const ar = {
-  'logo.small': 'كوماندوز',
-  'logo.big': 'الكنبة',
+  'logo.small': 'أبطال',
+  'logo.big': 'الفضاء',
   tagline: 'امسك هاتفك، امسح الرمز، وسيصبح يد التحكم الخاصة بك',
   'step.1': 'اتصل بنفس شبكة الواي فاي',
   'step.2': 'وجّه كاميرا الهاتف إلى هنا',
@@ -426,7 +426,7 @@ const DICTS = { en, ar };
 export const LANGS = ['en', 'ar'];
 export const FUN_NAMES = {
   en: ['Captain Pickle', 'Turbo Taco', 'Ninja Noodle', 'Space Potato', 'Laser Llama', 'Mega Muffin', 'Pixel Panda', 'Thunder Toast', 'Rocket Rabbit', 'Jet Jelly'],
-  ar: ['كابتن فلافل', 'صاروخ كنافة', 'نينجا الشاي', 'بطاطا فضائية', 'نمر الليزر', 'برق الصحراء', 'الفهد النفاث', 'رعد الصغير', 'القط المقاتل', 'بطل الكنبة'],
+  ar: ['كابتن فلافل', 'صاروخ كنافة', 'نينجا الشاي', 'بطاطا فضائية', 'نمر الليزر', 'برق الصحراء', 'الفهد النفاث', 'رعد الصغير', 'القط المقاتل', 'نجم المجرة'],
 };
 
 let lang = 'en';
@@ -475,6 +475,11 @@ export function applyStatic(root = document) {
   for (const el of root.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
   for (const el of root.querySelectorAll('[data-i18n-html]')) el.innerHTML = t(el.dataset.i18nHtml);
   for (const el of root.querySelectorAll('[data-i18n-ph]')) el.placeholder = t(el.dataset.i18nPh);
+  // The game's logo picture exists in each language (public/img/logo-<lang>.webp).
+  for (const el of root.querySelectorAll('img[data-logo]')) {
+    el.src = `/img/logo-${lang}.webp`;
+    el.alt = `${t('logo.small')} ${t('logo.big')}`;
+  }
 }
 
 // Text for one lobby setting, e.g. { key: 'mode', v: 'ctf' }.

@@ -1,9 +1,8 @@
-# Couch Commandos · كوماندوز الكنبة
+<p align="center"><img src="public/img/logo-en.webp" width="440" alt="Space Heroes"> <img src="public/img/logo-ar.webp" width="440" alt="أبطال الفضاء"></p>
 
-*kanab* (كنبة) is Arabic for couch: this game was made for family game nights on the sofa.
+# Space Heroes · أبطال الفضاء
 
-
-A 2D team shooter for the big screen, inspired by the classic **Soldat**. Jetpacks, Capture the Flag, rockets, freeze rays and bee swarms. Scan the QR code and your **phone becomes a twin-stick gamepad**. There's nothing to install on the phones.
+A 2D team shooter for family game nights on the big screen, inspired by the classic **Soldat**. Jetpacks, Capture the Flag, rockets, freeze rays and bee swarms. Scan the QR code and your **phone becomes a twin-stick gamepad**. There's nothing to install on the phones.
 
 Two ways to watch, and you can mix them in the same match:
 
@@ -190,7 +189,7 @@ scripts/screenshots.mjs   regenerates the README screenshots with headless Chrom
 
 - If phones can't connect, check they're on the same Wi-Fi (not a guest network) and that the address under the QR code starts with your laptop's local IP. You can force it with `HOST_IP=192.168.1.20 npm start`, or change the port with `PORT=8080`.
 - iPhone: for a true fullscreen controller, tap Share → *Add to Home Screen* and open it from there.
-- Regenerate screenshots: `npm start` in one terminal, `npm run screenshots` in another (uses your installed Google Chrome).
+- Regenerate screenshots: `FAMILY_DIR=none npm start` in one terminal (so your family names and picture stay out), `npm run screenshots` in another (uses your installed Google Chrome).
 - Made a map? `npm run check-maps` checks that everything is reachable and that bots can capture flags on it.
 - Changed a weapon? `npm run test-weapons` runs quick checks of the special weapons.
 

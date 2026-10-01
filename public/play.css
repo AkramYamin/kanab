@@ -38,14 +38,8 @@ input { font: inherit; }
 .view > :first-child { margin-top: auto; }
 .view > :last-child { margin-bottom: auto; }
 
-.logo { display: flex; flex-direction: column; align-items: center; line-height: 0.95; }
-.logo span { font-weight: 800; letter-spacing: 0.9em; margin-right: -0.9em; font-size: 13px; opacity: 0.9; }
-.logo b {
-  font: 400 38px var(--display);
-  background: linear-gradient(180deg, #fff3c4, var(--gold) 45%, var(--orange));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 4px 14px rgba(255, 138, 61, 0.4));
-}
+.logo { margin: 0; line-height: 0; text-align: center; }
+.logo img { width: min(78vw, 300px); height: auto; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45)); }
 
 .field { width: min(100%, 380px); display: flex; flex-direction: column; gap: 8px; }
 .field > span { font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
@@ -267,7 +261,7 @@ body.phoneview .dead { background: rgba(10, 5, 15, 0.35); }
 /* Short landscape screens: tighten the lobby. */
 @media (max-height: 480px) {
   .view { gap: 10px; }
-  .logo b { font-size: 28px; }
+  .logo img { width: auto; height: 90px; }
   .howto { display: none; }
   .setlist { grid-template-columns: repeat(4, 1fr); }
 }
@@ -302,8 +296,6 @@ body.phoneview .dead { background: rgba(10, 5, 15, 0.35); }
 
 /* Letter spacing breaks joined Arabic letters. */
 html[lang='ar'] body * { letter-spacing: 0 !important; }
-html[lang='ar'] .logo span { margin-right: 0; font-size: 20px; font-weight: 800; }
-html[lang='ar'] .logo b { font-size: 46px; line-height: 1.15; }
 /* The game screen and teams keep the map's layout: red/left, blue/right. */
 #pad, .teampick { direction: ltr; }
 html[dir='rtl'] #pad .banner, html[dir='rtl'] #pad .dead, html[dir='rtl'] #padFeed, html[dir='rtl'] .wpn span { direction: rtl; }

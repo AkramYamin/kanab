@@ -1,4 +1,4 @@
-// Couch Commandos — local game server.
+// Space Heroes — local game server.
 //
 // Serves the TV page (/) and the phone page (/play), and runs the match
 // itself (see server/host.js):
@@ -120,7 +120,8 @@ const host = new Host(
   },
   process.env.SETTINGS_FILE || path.join(ROOT, '.settings.json'),
   path.join(PUBLIC, 'voices'),
-  path.join(PUBLIC, 'family'),
+  // FAMILY_DIR=none hides the family names and picture (e.g. for public screenshots).
+  process.env.FAMILY_DIR || path.join(PUBLIC, 'family'),
 );
 
 function allocPid() {
@@ -219,7 +220,7 @@ setInterval(() => {
 
 server.listen(PORT, '0.0.0.0', () => {
   const line = '─'.repeat(52);
-  console.log(`\n${line}\n  🎮  COUCH COMMANDOS is running!\n${line}`);
+  console.log(`\n${line}\n  🎮  SPACE HEROES is running!\n${line}`);
   console.log(`  TV / laptop : http://localhost:${PORT}`);
   console.log(`  Phones      : ${joinUrl}  (or scan the QR on the TV)`);
   console.log(`${line}\n`);

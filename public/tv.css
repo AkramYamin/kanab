@@ -52,24 +52,8 @@ kbd {
 }
 
 .brand { text-align: center; }
-.logo { display: inline-flex; flex-direction: column; align-items: center; line-height: 0.9; }
-.logo .l1 {
-  font: 800 1.7rem var(--ui);
-  letter-spacing: 1.1em;
-  margin-right: -1.1em;
-  color: #fff;
-  opacity: 0.9;
-}
-.logo .l2 {
-  font-family: var(--display);
-  font-size: 5.4rem;
-  letter-spacing: 0.04em;
-  background: linear-gradient(180deg, #fff3c4 0%, var(--gold) 45%, var(--orange) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0.35rem 1.4rem rgba(255, 138, 61, 0.45));
-}
+.logo { margin: 0; line-height: 0; }
+.logo img { height: 11rem; width: auto; filter: drop-shadow(0 0.4rem 1.2rem rgba(0, 0, 0, 0.45)); }
 .tagline { margin: 0.6rem 0 0; color: var(--muted); font-size: 1.15rem; letter-spacing: 0.02em; }
 
 .lobby-main { flex: 1; display: flex; gap: 2rem; min-height: 0; align-items: flex-start; }
@@ -330,8 +314,6 @@ kbd {
 
 /* Letter spacing breaks joined Arabic letters. */
 html[lang='ar'] body * { letter-spacing: 0 !important; }
-html[lang='ar'] .logo .l1 { margin-right: 0; font-size: 2.4rem; }
-html[lang='ar'] .logo .l2 { font-size: 6rem; line-height: 1.1; }
 html[lang='ar'] .tagline { font-size: 1.3rem; }
 /* The map never flips: red base is always on the left, blue on the right. */
 .teams, .scorebar, .final-score, #vs .vs-names { direction: ltr; }
