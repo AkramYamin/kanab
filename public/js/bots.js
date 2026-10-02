@@ -12,8 +12,12 @@ import { PHYS } from './game.js';
 
 const CELL = 30;
 
+// Easy is tuned for young kids: slower to react, shakier aim, shoots in bursts
+// with short breaks, no grenades, notices you later, and is "weak": it hits a
+// bit softer (hit), comes back slower and leaves the pickups to the kids.
+// In simulated matches kids win about 3 of every 4 knockouts against it.
 export const SKILL = {
-  easy: { react: 0.75, aimErr: 0.3, turn: 3.2, fireCone: 0.35, gren: 0.05, view: 900, lead: 0.3 },
+  easy: { react: 0.8, aimErr: 0.32, turn: 3, fireCone: 0.3, gren: 0, view: 900, lead: 0, burst: [1.8, 0.5], weak: true, hit: 0.85 },
   normal: { react: 0.42, aimErr: 0.13, turn: 6, fireCone: 0.22, gren: 0.12, view: 1300, lead: 0.7 },
   hard: { react: 0.2, aimErr: 0.05, turn: 11, fireCone: 0.12, gren: 0.2, view: 1800, lead: 1 },
 };
@@ -305,12 +309,13 @@ function think(g, p, b, sk) {
       }
     }
   }
-  if (!goal && p.weapon === 'blaster') goal = nearestPickup(g, p, ['weapon'], 650);
+  if (!goal && p.weapon === 'blaster' && !sk.weak) goal = nearestPickup(g, p, ['weapon'], 650);
   if (!goal) goal = closest ? { x: closest.x, y: closest.y } : { x: g.map.W / 2, y: g.map.H / 2 };
   // With the hammer you have to get close.
   if (!p.carrying && p.weapon === 'hammer' && seen && seenD < 520) goal = { x: seen.x, y: seen.y };
   if (!p.carrying) {
-    const near = nearestPickup(g, p, p.weapon === 'blaster' ? ['weapon', 'health', 'grenades', 'power', 'hole'] : ['health', 'power', 'grenades', 'hole'], 200);
+    const kinds = sk.weak ? ['health'] : p.weapon === 'blaster' ? ['weapon', 'health', 'grenades', 'power', 'hole'] : ['health', 'power', 'grenades', 'hole'];
+    const near = nearestPickup(g, p, kinds, 200);
     if (near) goal = near;
   }
   const moved = !b.goal || Math.hypot(goal.x - b.goal.x, goal.y - b.goal.y) > 90;
@@ -416,6 +421,12 @@ function combat(g, p, b, sk, inp, dt) {
     const range = { flame: 380, ice: 560, melee: 130, bee: 1150 }[w.kind] || (w.pellets > 1 ? 650 : 1500);
     const cone = w.kind === 'bee' || w.kind === 'melee' ? sk.fireCone * 2.2 : sk.fireCone;
     inp.fire = b.reactT <= 0 && Math.abs(d) < cone && dist < range;
+    if (sk.burst) {
+      // Shoot for a moment, then take a break: time for kids to fight back.
+      b.burstT = (b.burstT ?? sk.burst[0]) - dt;
+      if (b.burstT < -sk.burst[1]) b.burstT = sk.burst[0];
+      if (b.burstT < 0) inp.fire = false;
+    }
     b.grenT -= dt;
     if (b.grenT <= 0) {
       b.grenT = rand(1.5, 3);

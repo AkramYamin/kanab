@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { MAPS } from '../public/js/maps.js';
 import { Game, TEAM_COLOR, STEP, blankInput } from '../public/js/game.js';
-import { makeBot, BOT_NAMES, BOT_NAMES_AR } from '../public/js/bots.js';
+import { makeBot, BOT_NAMES, BOT_NAMES_AR, SKILL } from '../public/js/bots.js';
 import { WEAPONS, TOGGLES } from '../public/js/weapons.js';
 import { encodeSnapshot } from '../public/js/protocol.js';
 
@@ -625,6 +625,8 @@ export class Host {
     if (special === 'first') {
       this.ev('sy', 'firstBlood', {}, 1);
       this.ev('ft', r(k.x), r(k.y - 120), 'firstBlood', '#ff6b6b');
+    } else if (k.bot && SKILL[k.bot.skill]?.weak) {
+      // Easy bots get no "on fire!" cheers: celebrate the kids, not the bots.
     } else if (k.multi >= 2) {
       const key = k.multi === 2 ? 'double' : k.multi === 3 ? 'triple' : 'unstoppable';
       this.ev('sy', key, {}, 1);

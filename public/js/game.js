@@ -6,7 +6,7 @@
 
 import { WEAPONS, GRENADE, HOLE, FREEZE, SWING, TOGGLES } from './weapons.js';
 import { clamp, rand, approach, angleDiff, segAABB, distToBox } from './util.js';
-import { updateBot } from './bots.js';
+import { updateBot, SKILL } from './bots.js';
 
 export const PHYS = {
   // Soldiers are drawn from a 52-unit-tall model scaled up by SCALE.
@@ -20,6 +20,8 @@ export const STEP = 1 / 60;
 export const TEAM_COLOR = { red: '#ff4d5e', blue: '#3da5ff' };
 export const other = (team) => (team === 'red' ? 'blue' : 'red');
 export const blankInput = () => ({ mx: 0, my: 0, aim: 0, aiming: false, fire: false, gren: 0 });
+// Easy bots: softer hits, slower comeback, no weapon or power pickups.
+const weakBot = (p) => !!p?.bot && !!SKILL[p.bot.skill]?.weak;
 
 const wallHit = { t: 0, nx: 0, ny: 0 };
 const tmpHit = { t: 0, nx: 0, ny: 0 };
@@ -830,6 +832,7 @@ export class Game {
     if (Math.abs(kx) > 200 || ky < -300) o.fling = true;
     if (attacker === o) return false; // rocket-jumping is free
     amount *= attacker && attacker.powerT > 0 ? 2 : 1;
+    if (attacker?.bot) amount *= SKILL[attacker.bot.skill]?.hit ?? 1;
     if (amount <= 0) return false;
     o.hp -= amount;
     o.hitFlash = 1;
@@ -850,7 +853,7 @@ export class Game {
     v.streak = 0;
     v.burnT = 0;
     v.jetting = false;
-    v.respawnT = this.s.mode === 'ctf' ? 3 : 2.5;
+    v.respawnT = (this.s.mode === 'ctf' ? 3 : 2.5) + (weakBot(v) ? 1.5 : 0);
     if (!killer || killer === v) {
       const last = this.players.get(v.lastHitBy);
       if (last && last !== v && this.time - v.lastHitT < 4) killer = last;
@@ -1006,6 +1009,7 @@ export class Game {
   }
 
   applyPickup(p, k) {
+    if (weakBot(p) && (k.kind === 'weapon' || k.kind === 'power' || k.kind === 'hole')) return false;
     switch (k.kind) {
       case 'weapon': {
         const full = WEAPONS[k.weapon].ammo;
