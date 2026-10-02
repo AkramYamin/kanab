@@ -1,27 +1,73 @@
-<p align="center"><img src="public/img/logo-en.webp" width="440" alt="Space Heroes"> <img src="public/img/logo-ar.webp" width="440" alt="أبطال الفضاء"></p>
+<p align="center">
+  <img src="public/img/logo-en.webp" width="460" alt="Space Heroes · أبطال الفضاء">
+</p>
 
-# Space Heroes · أبطال الفضاء
+<p align="center">
+  <b>A jetpack team shooter for family game night.</b><br>
+  The game is on the TV, and every phone in the room is a controller. Scan, tap, play.
+</p>
 
-A 2D team shooter for family game nights on the big screen, inspired by the classic **Soldat**. Jetpacks, Capture the Flag, rockets, freeze rays and bee swarms. Scan the QR code and your **phone becomes a twin-stick gamepad**. There's nothing to install on the phones.
+<p align="center">
+  <img src="docs/media/family.webp" width="100%" alt="A family playing Space Heroes on the TV, each with a phone as the controller">
+</p>
 
-Two ways to watch, and you can mix them in the same match:
+## Why it's fun
 
-- **📺 TV:** everyone watches one big screen. The camera zooms in and out so all players always fit.
-- **📱 Phones:** each phone shows the game itself, following its own soldier, with the sticks on top. The laptop only hosts. Great for bigger groups or players in another room.
+- **No app, no gamepads.** Point a phone's camera at the TV and it turns into a twin-stick controller. Anyone in the room can join in seconds.
+- **Kids and grown-ups play together.** Aim help bends shots toward enemies, Bee Swarm bullets find their own target, and easy bots fill the empty spots.
+- **Silly weapons.** Freeze your dad in an ice block, send your brother flying with a toy hammer, or throw a black hole that sucks everyone in.
+- **Built for jetpacks.** Five big maps full of towers, tunnels, jump pads and portals.
+- **Capture the Flag, Team Deathmatch or Free for All**, with up to 8 bots.
+- **English and Arabic (العربية)** on every screen, with a cheering announcer in both.
 
-![TV lobby](docs/screenshots/tv-lobby.jpg)
+<img src="docs/media/gameplay.webp" width="100%" alt="Gameplay: soldiers with jetpacks battling across four maps">
 
-| On the TV | On a phone |
+## Your phone is the controller
+
+<img src="docs/media/play.jpg" width="100%" alt="The game on a TV and two phones used as controllers">
+
+Hold the phone sideways. The **left thumb** moves: push up to jump, keep holding to fly. The **right thumb** aims, and you shoot as soon as you drag. The round button throws a grenade. Each stick appears wherever your thumb lands, so small hands never have to find a button.
+
+## Join in seconds
+
+<img src="docs/media/join.jpg" width="100%" alt="The TV lobby with a QR code, and a phone picking a name, color and team">
+
+Everyone on the same Wi-Fi scans the code, picks a name, a color and a team, and appears on the TV. The first player to join is the **captain** 👑 and can change the settings and start the match from their phone.
+
+## Weapons
+
+<img src="docs/media/weapons.webp" width="100%" alt="Freeze Ray, Big Hammer, Bee Swarm and a black hole in action">
+
+| Weapon | What it does |
 | --- | --- |
-| ![Canyon Run](docs/screenshots/tv-canyon.jpg) | ![Phone view](docs/screenshots/phone-view-canyon.jpg) |
-| ![Neon District](docs/screenshots/tv-district.jpg) | ![Phone view](docs/screenshots/phone-view-district.jpg) |
-| ![Glacier Keep](docs/screenshots/tv-glacier.jpg) | ![Phone view](docs/screenshots/phone-view-glacier.jpg) |
-| ![Jungle Temple](docs/screenshots/tv-temple.jpg) | ![Phone view](docs/screenshots/phone-view-temple.jpg) |
-| ![Treehouse Forest](docs/screenshots/tv-forest.jpg) | ![Phone view](docs/screenshots/phone-view-forest.jpg) |
+| **Blaster** | Your trusty starter. It never runs out. |
+| **Shotgun** · **Minigun** · **Railgun** | Close-range spray, a stream of bullets, and one long beam across the map. |
+| **Rockets** | A big boom that throws everyone around. Shoot your feet to rocket-jump; your own rockets never hurt you. |
+| **Flamer** · **Bouncer** | Short-range fire, and balls that bounce around corners. |
+| **Freeze Ray** | Hold it on someone for a second and they freeze solid in an ice block. |
+| **Bee Swarm** | Three bees fly to the nearest enemy, so aiming hardly matters. The strongest weapon: one per map, at the very top. |
+| **Big Hammer** | Every swing leaps you forward, and whoever it hits flies across the map. BONK! |
+| **Black hole** | A grenade pickup: it floats, pulls enemies in for two seconds, then pops. |
 
-## Quick start
+Grab health, grenades and the double-damage star along the way. In the lobby, **Weapons** lets you switch any of them off, for example for a hammers-only match.
 
-You need [Node.js](https://nodejs.org) 20 or newer (the project pins 24 in `.nvmrc`).
+## Five maps
+
+<img src="docs/media/maps.jpg" width="100%" alt="Canyon Run, Glacier Keep, Treehouse Forest, Jungle Temple and Neon District">
+
+Every map has several routes between the two bases, **jump pads** (green arrows) that fling you to the high paths, and **portals** in matching pairs.
+
+## العربية
+
+<img src="docs/media/arabic.jpg" width="100%" alt="The lobby and a phone in Arabic">
+
+<p dir="rtl">اللعبة كاملة بالعربية: القوائم على التلفاز والهواتف، والمعلّق الصوتي.</p>
+
+Switch with **Language** in the lobby (or press `L`). A phone can pick its own language on the join screen, so a guest can play in English while the TV is in Arabic.
+
+## Get started
+
+You need [Node.js](https://nodejs.org) 20 or newer on a laptop.
 
 ```bash
 git clone https://github.com/AkramYamin/space-heroes.git
@@ -30,33 +76,29 @@ npm install
 npm start
 ```
 
-1. Open **http://localhost:3000** on the laptop. Connect the laptop to the TV and press **F** for fullscreen.
-2. Click once anywhere on the TV page to turn the sound on (browsers require this).
-3. Everyone joins the **same Wi-Fi** as the laptop and scans the QR code on the TV.
-4. The first player to join is the **captain** 👑 and can change settings and start the match from their phone. You can also click the settings on the TV and press **Enter**.
-5. **Watch on** (lobby setting) picks TV or Phones for everyone. Each player can still switch on their own phone: in the lobby, or with the 📱/📺 button during a match.
+1. Open **http://localhost:3000** on the laptop, connect the laptop to the TV and press **F** for fullscreen. Click once to turn the sound on.
+2. Phones join the **same Wi-Fi** and scan the code on the TV.
+3. Press **Start game** on the TV (or the captain does it on their phone).
 
-> On macOS the first time a phone connects you may see *"Allow node to accept incoming connections?"*. Click **Allow**.
+On macOS, click **Allow** if it asks whether *node* may accept incoming connections.
 
-## Languages · اللغات
+<details>
+<summary><b>Lobby settings and laptop keys</b></summary>
 
-The game speaks **English** and **Arabic (العربية)**: the TV, the phones and the announcer.
+- **Mode**, **Map**, **Goal** and **Time** for the match.
+- **Watch on**: everyone watches the TV, or each phone also shows the game itself.
+- **Bots** (0 to 8) and **Bot skill** (easy, normal, hard). Easy bots go easy on young players: they hit softer, react slower and never pick up weapons.
+- **Aim help** (on by default) gently bends shots toward nearby enemies.
+- **Language**, **Announcer** and **Weapons**.
 
-- Change it with the **Language** setting in the lobby (or press `L` on the laptop). Every screen follows it, and Arabic switches the menus to right-to-left.
-- A phone can pick its own language on the join screen, so a guest can use English while the TV is in Arabic.
-- The announcer is a recorded **Arena announcer** voice in both languages, made with AI (see [Announcer voices](#announcer-voices-ai)). The lobby's **Announcer** setting switches between voice packs and *Computer voice*, which uses the computer's built-in speech (on a Mac the Arabic voice is **Majed**; to add one: System Settings → Accessibility → Spoken Content → System voice → Manage Voices; on Windows: Settings → Time & language → Speech → Add voices).
+Laptop keys on the TV page: `Enter` start / play again · `Esc` back to the lobby · `E` end the match · `L` language · `F` fullscreen · `M` music · `V` announcer · `K` add a keyboard-and-mouse player (WASD, mouse to aim and shoot, `G` grenade).
 
-| العربية على التلفاز | على الهاتف |
-| --- | --- |
-| ![Arabic lobby](docs/screenshots/ar/tv-lobby.jpg) | ![Arabic phone](docs/screenshots/ar/phone-lobby.jpg) |
+</details>
 
-![Freeze Ray and Big Hammer in Arabic: تجمّد! and طاخ!](docs/screenshots/ar/tv-weapons.jpg)
+<details>
+<summary><b>Make it yours: team names and a family picture</b></summary>
 
-## Family touches: team names and a picture (they stay on your computer)
-
-Name the two teams after your kids and put a picture of them in the game. Everything goes in the folder `public/family/`, which is in `.gitignore`, so names, photos and voices never go to GitHub. Delete the folder to go back to Red and Blue.
-
-**1. Team names.** Copy the example and edit it:
+Name the two teams after your kids and put their picture in the lobby. Everything lives in `public/family/`, which git ignores, so names and photos never leave your computer. Delete the folder to go back to Red and Blue.
 
 ```bash
 mkdir -p public/family
@@ -73,126 +115,66 @@ cp docs/family.example.json public/family/family.json
 }
 ```
 
-`red` is the team on the left, `blue` the one on the right. Give each name in English (`en`) and Arabic (`ar`). The game then says *Team Sara* / «فريق سارة» everywhere: the lobby, the scoreboard, the banners, the results and the phones.
+`red` is the team on the left, `blue` on the right. The game then says *Team Sara* / «فريق سارة» everywhere: the lobby, the scoreboard, the banners and the phones.
 
-**2. The picture.** Save a wide 16:9 picture (for example 1920×1080) as `public/family/background.jpg`, with the red team's kid on the **left** and the blue team's on the **right**, faces in the upper half. It fills the lobby (the team lists move to the middle and the QR code to a corner so both faces stay visible) and shows with "Team Sara VS Team Omar" while each match counts down. To use another file name or a `.png` / `.webp`, change `"background"` in `family.json`.
+For the picture, save a wide 16:9 image as `public/family/background.jpg`, with the red team's kid on the **left** and the blue team's on the **right**, faces in the upper half. It fills the lobby and shows with "Team Sara VS Team Omar" before each match. An AI image tool works well: upload a photo of each kid and ask for *"wide 16:9 video game splash art, the first kid on the left in red sci-fi armor with a jetpack, the second on the right in blue armor, facing each other with playful grins, friendly 3D cartoon style, no text"*.
 
-To make the picture, an AI image tool (for example GPT Image in ChatGPT) works well. Upload a photo of each kid, the red team's kid first, and use a prompt like: *"Wide 16:9 video game splash art. Use the two photos only as likeness references: image 1 on the left in glossy red sci-fi commando armor with a jetpack and a big toy hammer, image 2 on the right in blue armor with a freeze-ray blaster, facing each other with playful grins. Friendly 3D cartoon style. Red sparks behind the left kid, blue frost behind the right one, colliding in a golden burst in the middle. Keep the center and the bottom fifth calm for the game's text. No text, logos or watermarks."*
+Refresh the TV page and the phones to see it; there's no need to restart the server. With the [voice tool](#announcer-voices) set up, `npm run voices -- --teams` also makes the announcer say the names («فريق سارة يسجّل!»).
 
-**3. Refresh** the TV page (and reload the phones). The server reads `family.json` and the picture every time, so there's no need to restart it.
+</details>
 
-**4. Optional: the announcer says the names.** With the [voice tool](#announcer-voices-ai) set up, `npm run voices -- --teams` records the 10 team lines in each language («فريق سارة يسجّل!», "Team Sara scores!"), about 15 minutes. Run it again after changing the names. Until then the computer's voice says those lines, so the announcer never calls the teams "Red" and "Blue" by mistake.
+<details id="announcer-voices">
+<summary><b>Announcer voices</b></summary>
 
-## Controls
+The announcer clips in `public/voices/announcer/` (English and Arabic) were made on a laptop with two open AI models: [Chatterbox](https://github.com/resemble-ai/chatterbox) speaks each line in the voice of a short recording, and [Whisper](https://huggingface.co/openai/whisper-large-v3-turbo) listens to several takes and keeps the clearest one. The lobby's **Announcer** setting switches between voice packs and the computer's own speech (on a Mac the Arabic voice is *Majed*).
 
-**Phone (hold it sideways):**
-
-| Thumb | What it does |
-| --- | --- |
-| Left side | Move. Push **up** to jump, keep holding to fly with the jetpack. Push **down** to drop through thin platforms. |
-| Right side | Aim. Shooting starts as soon as you drag. Let go to stop. |
-| Grenade button | Throw a grenade where you're aiming. |
-
-When the game is on your phone you also get a minimap and edge arrows pointing to the flag (⚑) or, while you carry it, back home (⌂).
-
-Each stick appears wherever your thumb lands and follows it if you slide too far, so small hands never have to find a button. Aim help (on by default) gently bends shots toward nearby enemies.
-
-**Laptop keyboard (TV page):** `Enter` start / play again · `Esc` back to lobby · `E` end the match now · `L` language · `F` fullscreen · `M` music · `V` announcer voice · `K` add a keyboard + mouse player (WASD, mouse to aim/shoot, `G` grenade).
-
-## Game modes and content
-
-- **Capture the Flag**: grab the enemy flag and bring it to your base while your own flag is home.
-- **Team Deathmatch** and **Free for All**.
-- **5 big maps**: Canyon Run, Neon District, Glacier Keep, Jungle Temple and Treehouse Forest. Each has tunnels, towers and several routes between the bases, plus:
-  - **Jump pads** (green arrows) that fling you up to the high routes.
-  - **Teleporters** (glowing portals, in pairs of the same color). Walk in and you come out of its twin. Step out and back in to return.
-- **10 weapons** plus grenades: Blaster, Shotgun, Minigun, Railgun, Rockets, Flamer, Bouncer, Freeze Ray, Bee Swarm and Big Hammer. Pickups for health, grenades, black holes and a double damage star.
-  - *Rockets* speed up as they fly and explode on the first wall or player they hit. The blast hurts enemies nearby and throws everyone around. Shoot at your feet to rocket-jump; your own rockets never hurt you.
-  - *Freeze Ray* sprays ice. Keep it on someone for about a second and they freeze in an ice block for 1.6 s: they can't move, jump or shoot, and they slide around. Right after thawing nobody can freeze them again for a moment.
-  - *Bee Swarm* shoots 3 bees that fly to the nearest enemy they can see, so aiming hardly matters. Great for the youngest players. It's the strongest weapon, so every map has just one, at the very top in the middle, and it takes 25 s to come back.
-  - *Big Hammer* is a toy hammer: every swing leaps you forward and launches whoever it hits across the map (BONK!). It shatters frozen enemies for extra damage.
-  - *Black holes* (purple swirl pickup) replace your next 2 grenades. Thrown like a grenade, it floats up and pulls enemies in for 2 seconds, then pops. Teammates are safe.
-- **Choose the weapons**: the lobby's **Weapons** button opens a panel where you tap weapons on or off (the blaster always stays). Spots of a switched-off weapon get another weapon, the same on both sides, so you can play a hammers-only match, or one without rockets.
-- **Bots** (easy / normal / hard) fill the teams when you're short on players.
-- An announcer voice, live-generated sound effects in stereo, music, and phone vibration (Android) when you get hit or frozen.
-
-![Freeze Ray, Big Hammer, Bee Swarm and a black hole](docs/screenshots/tv-weapons.jpg)
-
-| Weapons on the TV | …and on the captain's phone |
-| --- | --- |
-| ![Weapons panel](docs/screenshots/tv-weapons-panel.jpg) | ![Weapons on the phone](docs/screenshots/phone-weapons.jpg) |
-
-## How it works
-
-```
- phones ──stick input, ~60/s──► Node server on the laptop ──snapshots 60/s──► TV / laptop screen
-   ▲                            runs the match at 60 steps/s
-   └──── HUD + vibration (all phones) · snapshots 30/s (phones showing the game)
-```
-
-- The match runs on the laptop's Node server, so it keeps going even if the TV tab is closed. The same game code (`public/js/game.js`) runs in Node and in the browser.
-- **No-lag phones:** a phone that shows the game moves its own soldier with the same physics locally, so it reacts instantly. The server's snapshots correct it smoothly (usually by just a few pixels). Everyone else is smoothed between snapshots.
-- There's no build step: plain ES modules and Canvas 2D. Distant scenery is painted once, and the level is drawn as crisp vector shapes, so it stays sharp at any camera zoom.
-- Sound effects are made on the fly with the Web Audio API, so there are no sound files. Only the announcer is recorded (below).
-
-## Announcer voices (AI)
-
-The announcer lines are short MP3 clips in `public/voices/announcer/` (Arabic and English), made on this laptop with two open AI models: [Chatterbox](https://github.com/resemble-ai/chatterbox) (Resemble AI, MIT) speaks each line in the voice of a short recording, and [Whisper](https://huggingface.co/openai/whisper-large-v3-turbo) (OpenAI, MIT) listens to 3 takes of every line and keeps the one it understands best. The music ducks while the announcer talks.
-
-You can make your own pack from a 10-second recording, for example a parent's voice:
+To make your own pack from a 10-second recording, for example a parent's voice:
 
 ```bash
-npm run voices:setup                     # once: private Python + packages in tools/voice/
+npm run voices:setup     # once: a private Python environment in tools/voice/
 npm run voices -- --pack baba --name "Baba" --ref ~/Desktop/baba.m4a --lang ar
 ```
 
-Then pick it with the lobby's **Announcer** setting. Your own packs stay out of git. Details are in [tools/voice/README.md](tools/voice/README.md). None of this is needed to play.
+Your own packs stay out of git. See [tools/voice/README.md](tools/voice/README.md). None of this is needed to play.
 
-Dependencies (all long-lived, widely used projects):
+</details>
 
-| Package | Why |
+<details>
+<summary><b>Trouble connecting?</b></summary>
+
+- Phones must be on the same Wi-Fi as the laptop, not a guest network. The address under the QR code should start with the laptop's local IP; force it with `HOST_IP=192.168.1.20 npm start`, or change the port with `PORT=8080`.
+- On iPhone, tap Share → *Add to Home Screen* for a true fullscreen controller.
+
+</details>
+
+<details>
+<summary><b>How it works (for developers)</b></summary>
+
+```
+ phones ──stick input──► Node server on the laptop ──snapshots 60/s──► TV
+   ▲                     runs the match at 60 steps/s
+   └──── HUD and vibration · snapshots 30/s for phones showing the game
+```
+
+- The laptop's Node server runs the match, so it keeps going even if the TV tab is closed. The same game code (`public/js/game.js`) runs in Node and in the browser.
+- A phone that shows the game moves its own soldier locally with the same physics, so it reacts instantly; the server's snapshots correct it smoothly.
+- No build step: plain ES modules and Canvas 2D. Sound effects are synthesized with the Web Audio API.
+- Three small, long-lived dependencies: [`ws`](https://github.com/websockets/ws) (WebSockets), [`qrcode`](https://github.com/soldair/node-qrcode) and [`nipplejs`](https://github.com/yoannmoinet/nipplejs) (touch sticks). `.nvmrc` pins Node and `.npmrc` enforces exact versions.
+
+| Path | What's inside |
 | --- | --- |
-| [`ws`](https://github.com/websockets/ws) | WebSocket server (since 2011) |
-| [`qrcode`](https://github.com/soldair/node-qrcode) | QR code for the join link (since 2010) |
-| [`nipplejs`](https://github.com/yoannmoinet/nipplejs) 0.10.x | Touch joysticks (since 2015; pinned to the stable 0.10 line) |
+| `server.js`, `server/host.js` | Web server, QR code, lobby and match flow |
+| `public/index.html`, `public/play.html` | The TV page and the phone page |
+| `public/js/game.js` | Simulation: physics, jetpacks, weapons, flags |
+| `public/js/bots.js` | Bot AI with path-finding that knows pads and portals |
+| `public/js/maps.js` | Map layouts and themes |
+| `public/js/render.js`, `audio.js`, `i18n.js` | Drawing, sound and music, English and Arabic text |
+| `scripts/` | `check-maps`, `test-weapons`, `voices` and `media` (makes the README pictures) |
 
-Everything installs into the project's own `node_modules` and nothing is installed globally. The optional voice maker keeps its Python packages inside `tools/voice/` too. `.nvmrc` pins the Node version and `.npmrc` enforces exact versions.
+`npm run check-maps` checks that every map is reachable and that bots can capture flags on it. `npm run test-weapons` checks the special weapons.
 
-## Project layout
-
-```
-server.js            static files + WebSockets + QR code
-server/host.js       lobby, settings, match flow, runs the simulation
-public/index.html    TV / laptop screen
-public/play.html     phone (controller + optional game view)
-public/js/
-  game.js            simulation: physics, jetpacks, pads, teleporters, weapons, flags
-  bots.js            bot AI (grid A* path-finding that knows pads/portals, aiming)
-  maps.js            map layouts and themes
-  protocol.js        compact snapshot format
-  world.js           client copy of the match, smoothed between snapshots
-  camera.js          TV auto-zoom camera and phone follow camera
-  render.js          canvas renderer and effects
-  events.js          turns match events into effects and sounds
-  audio.js           synthesized sound effects, music, announcer
-  i18n.js            English and Arabic text
-  tv.js              TV page
-public/voices/       announcer voice packs (MP3 clips + manifest.json)
-tools/voice/         AI voice maker (Chatterbox + Whisper, private Python env)
-scripts/check-maps.mjs    validates every map and runs bot-only matches
-scripts/test-weapons.mjs  checks freeze, bees, hammer and black holes do what they should
-scripts/voices.mjs        makes announcer clips from the lines in i18n.js
-scripts/screenshots.mjs   regenerates the README screenshots with headless Chrome
-```
-
-## Tips
-
-- If phones can't connect, check they're on the same Wi-Fi (not a guest network) and that the address under the QR code starts with your laptop's local IP. You can force it with `HOST_IP=192.168.1.20 npm start`, or change the port with `PORT=8080`.
-- iPhone: for a true fullscreen controller, tap Share → *Add to Home Screen* and open it from there.
-- Regenerate screenshots: `FAMILY_DIR=none npm start` in one terminal (so your family names and picture stay out), `npm run screenshots` in another (uses your installed Google Chrome).
-- Made a map? `npm run check-maps` checks that everything is reachable and that bots can capture flags on it.
-- Changed a weapon? `npm run test-weapons` runs quick checks of the special weapons.
+</details>
 
 ## License
 
-MIT. Have fun, and share it with other kids!
+MIT. Have fun, and share it with other families!
