@@ -24,8 +24,8 @@ Two ways to watch, and you can mix them in the same match:
 You need [Node.js](https://nodejs.org) 20 or newer (the project pins 24 in `.nvmrc`).
 
 ```bash
-git clone https://github.com/AkramYamin/kanab.git
-cd kanab
+git clone https://github.com/AkramYamin/space-heroes.git
+cd space-heroes
 npm install
 npm start
 ```
